@@ -11,7 +11,7 @@
 #define yellow 4
 #define red 5
 
-short autoMode = 1;
+//short autoMode = 1;
 
 int colorSense1;
 int colorSense2;
@@ -64,6 +64,7 @@ short getAutoMode(){
 ((colorSense1 == red && colorSense2 == red)?			36: 0
 	))))))))))))))))))))))))))))))))))));
 	return colorPicked;
+
 }
 
 //task main()

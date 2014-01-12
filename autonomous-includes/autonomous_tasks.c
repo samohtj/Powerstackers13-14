@@ -1,14 +1,22 @@
 #include "get_ir.c"
 #include "multiplexer.c"
+#include "color_mode_picker.c"
+
+#define CLOCKWISE 1
+#define COUNTERCLOCKWISE -1
 
 
-const int slowThresh = 180;
-const int fullStrength = 25;
-const int minStrength = 10;
-const int turnStrength = 25;
-const short stopThresh = 250;
+const int slowThresh 			= 180;	// IR detection level where you slow down
+const short stopThresh 		= 250;	// IR detection level where you stop completely
+const int fullStrength 		= 25;		// max motor strenght for finding the IR
+const int minStrength 		= 10;		// min motor strength for finding the IR
+const int turnStrength 		= 25;		// strength of the motors while turning
+const int raiseRotations 	= 9;		// number of motor rotations needed to lift the BS all the way up
+
 bool foundIr = false;
+bool placedBlock = false;
 short maxIrSig = 0;
+short blockTurnDirection = CLOCKWISE;
 
 // Set all motors to the input value
 void allMotorsTo(int i){
@@ -93,15 +101,24 @@ task findIr()
 	}
 }
 
-task raiseSuckerToLevel(){
+task placeBlock(){
+	turnXDegrees(90 * blockTurnDirection);
+	writeDebugStreamLine("Raising blockSucker");
+	while (nMotorEncoder[mBsAngle] < (raiseRotations * 4000)){
+			motor[mBsAngle] = 100;
+	}
+	motor[mBsAngle] = 0;
+	writeDebugStreamLine("blockSucker raised, placing block");
+	motor[mBsConveyor] = 100;
+	wait10Msec(200);
+	motor[mBsConveyor] = 0;
+	writeDebugStreamLine("Block placed, turning back");
+	turnXDegrees(90 * (-1 * blockTurnDirection));
+	writeDebugStreamLine("Done placing block");
 
+	placedBlock = true;
 }
 
-bool placeBlock(bool placeMode = true, float degreesToTurn = 90.0, float gearRatio = 9.0){
-	if (placeMode){
-		// place from front
-	}
-	else{
-		// place from back
-	}
+task findWhiteLine(){
+
 }
