@@ -6,6 +6,9 @@ These files include all the tele-op and autonomous code that we use. Most of it 
 
 Below is a list of all the functions we've got, and their uses.
 
+Robot Code
+----
+
 **autonomous-tasks.c**
 
     bool foundIr;
@@ -42,4 +45,38 @@ Below is a list of all the functions we've got, and their uses.
     short getAutoMode();
     Reads two color sensors, and returns a number from 1-36 based on the combination of colors. 
     Used to set an autonomous game mode option based on colored LEGO block inputs.
+**get-ir.c**
 
+    int getIrStrength(int sensor);
+    Takes a sensor as an argument, and returns the overall IR signal strength for that sensor.
+
+    int getIrDirection();
+    Returns the relative direction of the IR signal.
+
+**multiplexer.c**
+
+    int rawLightLeft;
+    int rawLightRight;
+    int rawColor;
+    int rawGyro;
+    Variables that store the sensor values for the sensors connected to the multiplexer.
+
+    task getSmux();
+    Constantly running tasks that sets variable values for all sensors connected to a multiplexer.
+
+**powerStackerSplash.c**
+
+    void drawPowerStacker(int x, int y);
+    Draws a little Powerstacker character to the NXT screen at the given x and y coordinates.
+
+    void erasePowerStacker(int x, int y);
+    Erases a little Powerstacker character at the given x and y coordinates.
+
+    void drawCenteredPowerStacker();
+    Draws a Powerstacker character, centered on the screen.
+
+    void eraseCenteredPowerStacker();
+    Erases a Powerstacker character, centered on the screen.
+
+    void doPowerStackerSplash();
+    Does a short opening screen animation.
