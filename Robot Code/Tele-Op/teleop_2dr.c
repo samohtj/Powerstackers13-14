@@ -13,8 +13,8 @@
 
 #include "JoystickDriver.c"  //Include file to "handle" the Bluetooth messages.
 
-#define FN(x)	((float)x * 0.78125)	// Convert the joystick's -128 - 127 value to a -99 - 100 value
-#define MODE_STRAIGHT true
+#define STICK_TO_MOTOR(x)	((float)x * 0.78125)	// Convert the joystick's -128 - 127 value to a -99 - 100 value
+#define MODE_STRAIGHT true					// Drive modes, straight or tank
 #define MODE_NORMAL false
 
 // Set all motors to the input value
@@ -39,21 +39,19 @@ void initializeRobot()
 }
 
 // Global Variable declarations
-short 	stickDriveLeft;
+short 	stickDriveLeft;		// Analog joysticks
 short 	stickDriveRight;
 short		stickConveyor;
 short		stickAngle;
 
-bool 		btnBsPower;
-bool 		btnBsReverse;
-bool 		btnBsRaise;
-bool 		btnStraightDr;
+bool 		btnStraightDr;		// Single-bit buttons
 bool		btnBlockStop;
-bool		driveMode;
+
+bool		driveMode;				// Flags
 bool		brickBlocked;
 bool		blockerMoving;
 
-const short		stickThreshold = 10;
+const short		stickThreshold = 10;	// Constants
 const int			blockClosedPos = 0;
 const int			blockOpenPos = 90;
 
@@ -69,31 +67,33 @@ void getCustomJoystickSettings(){
 
 // Print information to the screen
 void displayButtonValues(){
-	  nxtDisplayTextLine(0, "stDriveLeft:%d",		stickDriveLeft);
-  	nxtDisplayTextLine(1, "stDriveRight:%d",	stickDriveRight);
-  	nxtDisplayTextLine(2, "btnBsPower:%s",		(btnBsPower)?"1":"0");
-  	nxtDisplayTextLine(3, "btnBsReverse:%s",	(btnBsReverse)?"1":"0");
-  	nxtDisplayTextLine(4, "btnBsRaise:%s",		(btnBsRaise)?"1":"0");
-  	nxtDisplayTextLine(5, "DriveMode:%s",			(driveMode)?"STRAIGHT":"NORMAL");
-  	nxtDisplayTextLine(6, "mDrLeft:%3.1f",		motor[mDriveLeft]);
-  	nxtDisplayTextLine(7, "mDrRight:%3.1f",		motor[mDriveRight]);
+	  nxtDisplayTextLine(0, "stDriveLeft:%d",		stickDriveLeft);	// Left drive joystick
+  	nxtDisplayTextLine(1, "stDriveRight:%d",	stickDriveRight);	// Right drive joystick
+		nxtDisplayTextLine(3, "btnBlockStop:%s", (btnBlockStop)?"ON":"OFF");	// Brick stopper button
+
+  	nxtDisplayTextLine(5, "DriveMode:%s",			(driveMode)?"STRAIGHT":"NORMAL");	// Selected drive mode
+		nxtDisplayTextLine(6, "stickAngle:%d", stickAngle);	// Brick sucker joystick
+		nxtDisplayTextLine(7, "stickConveyor:%d", stickConveyor);	// Conveyor joystick
 }
 
 // Move the block breaker without stopping the program
 task moveBrickBlocker(){
-	blockerMoving = true;
+	blockerMoving = true; // Raise the blockerMoving flag
 	if(brickBlocked){
-		while(nMotorEncoder[mBlockStop] < blockOpenPos){
+		while(nMotorEncoder[mBlockStop] < blockOpenPos){	// While motor has not reached encoder position
 			motor[mBlockStop] = 100;
 		}
 		motor[mBlockStop] = 0;
+		brickBlocked = false; // Blocker is now open, toggle flag
 	}else{
-		while(nMotorEncoder[mBlockStop] > blockClosedPos){
+		while(nMotorEncoder[mBlockStop] > blockClosedPos){ // While motor has not reached encoder position
 			motor[mBlockStop] = -100;
 		}
 		motor[mBlockStop] = 0;
+		brickBlocked = true;	// Blocker is now closed, toggle flag
 	}
-	blockerMoving = false;
+	blockerMoving = false; // Toggle off the task flag, and end
+	return;
 }
 
 task main(){
@@ -102,24 +102,24 @@ task main(){
 
 	eraseDisplay();		// Cear the screen
   initializeRobot();
-  ClearTimer(T1);
+  ClearTimer(T1);	// Reset the timer
 
   //waitForStart();   // wait for start of tele-op phase
 
   while (true){
   	getJoystickSettings(joystick);
-  	getCustomJoystickSettings();
+  	getCustomJoystickSettings();		// Fetch the joystick information
 		displayButtonValues();
 
 
 		// Changing drive mode
 		if(btnStraightDr){
 			driveMode = MODE_STRAIGHT;
-			writeDebugStreamLine("Changed mode to straight");
+			//writeDebugStreamLine("Changed mode to straight");
 		}
 		else{
 			driveMode = MODE_NORMAL;
-			writeDebugStreamLine("Changed mode to normal");
+			//writeDebugStreamLine("Changed mode to normal");
 		}
 
 
@@ -128,7 +128,7 @@ task main(){
 
 			// STRAIGHT DRIVE
 			if(abs(stickDriveLeft) > stickThreshold){
-					driveMotorsTo(FN(stickDriveLeft));
+					driveMotorsTo(STICK_TO_MOTOR(stickDriveLeft));
 			}
 			else{
 				driveMotorsTo(0);
@@ -143,7 +143,7 @@ task main(){
 				motor[mDriveLeft] = 0;
 			}
 			else{
-				motor[mDriveLeft] = FN(stickDriveLeft);
+				motor[mDriveLeft] = STICK_TO_MOTOR(stickDriveLeft);
 			}
 
 			// RIGHT DRIVE
@@ -151,7 +151,7 @@ task main(){
 				motor[mDriveRight] = 0;
 			}
 			else{
-				motor[mDriveRight] = FN(stickDriveRight);
+				motor[mDriveRight] = STICK_TO_MOTOR(stickDriveRight);
 			}
 		}
 
@@ -161,22 +161,22 @@ task main(){
 			motor[mBsConveyor] = 0;
 		}
 		else{
-			motor[mBsConveyor] = FN(stickConveyor);
+			motor[mBsConveyor] = ((stickConveyor > 0)? 100 : -100);	// Do not scale the motor speed. +100 or -100 only.
 		}
 
 
 		// Brick Sucker raise/lower
-		if(abs(stickConveyor) < stickThreshold){
+		if(abs(stickAngle) < stickThreshold){
 			motor[mBsAngle] = 0;
 		}
 		else{
-			motor[mBsAngle] = FN(stickConveyor);
+			motor[mBsAngle] = ((stickAngle > 0)? 100 : -100);
 		}
 
 		// Brick stopper servo
 		if(btnBlockStop){
 			if(time100[T1] % 10 == 0){
-				brickBlocked = !brickBlocked;	// Switch the brickSucker
+				//brickBlocked = !brickBlocked;	// Switch the brickSucker
 				if(!blockerMoving)
 					StartTask(moveBrickBlocker);
 			}
