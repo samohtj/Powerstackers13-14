@@ -39,21 +39,8 @@ void initializeRobot()
 }
 
 // Global Variable declarations
-short 	stickDriveLeft;		// Analog joysticks
-short 	stickDriveRight;
-short		stickConveyor;
-short		stickAngle;
 
-bool 		btnStraightDr;		// Single-bit buttons
-bool		btnBlockStop;
 
-bool		driveMode;				// Flags
-bool		brickBlocked;
-bool		blockerMoving;
-
-const short		stickThreshold = 10;	// Constants
-const int			blockClosedPos = 0;
-const int			blockOpenPos = 90;
 
 // Function to transfer normal joystick values to the custom variables
 void getCustomJoystickSettings(){
@@ -80,19 +67,23 @@ void displayButtonValues(){
 task moveBrickBlocker(){
 	blockerMoving = true; // Raise the blockerMoving flag
 	if(brickBlocked){
-		while(nMotorEncoder[mBlockStop] < blockOpenPos){	// While motor has not reached encoder position
-			motor[mBlockStop] = 100;
+		while(nMotorEncoder[mBlockStop] < (encoderStartValue + blockOpenPos)){	// While motor has not reached encoder position
+			motor[mBlockStop] = 25;
 		}
+		writeDebugStreamLine("current encoder value: %d at end", nMotorEncoder[mBlockStop]);
 		motor[mBlockStop] = 0;
 		brickBlocked = false; // Blocker is now open, toggle flag
 	}else{
-		while(nMotorEncoder[mBlockStop] > blockClosedPos){ // While motor has not reached encoder position
-			motor[mBlockStop] = -100;
+		while(nMotorEncoder[mBlockStop] > (encoderStartValue + blockClosedPos)){ // While motor has not reached encoder position
+			motor[mBlockStop] = -25;
 		}
+		writeDebugStreamLine("current encoder value: %d at end", nMotorEncoder[mBlockStop]);
 		motor[mBlockStop] = 0;
 		brickBlocked = true;	// Blocker is now closed, toggle flag
+		writeDebugStreamLine("brickBlocked toggled: true\n closed blocker");
 	}
 	blockerMoving = false; // Toggle off the task flag, and end
+	writeDebugStreamLine("Stopped task: moveBrickBlocker");
 	return;
 }
 
@@ -178,6 +169,7 @@ task main(){
 			if(time100[T1] % 10 == 0){
 				//brickBlocked = !brickBlocked;	// Switch the brickSucker
 				if(!blockerMoving)
+					blockerMoving = true;
 					StartTask(moveBrickBlocker);
 			}
 		}
