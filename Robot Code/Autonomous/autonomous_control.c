@@ -17,7 +17,8 @@
 #include "JoystickDriver.c"
 #include "autonomous-includes/autonomous_tasks.c"
 
-short autoMode = getAutoMode();
+//short autoMode = getAutoMode();
+short autoMode = 3;
 
 task main(){
 	// do some housekeeping work. print that the program is running, clear the screen and debug stream
@@ -33,6 +34,7 @@ task main(){
 	waitForStart();
 
 	StartTask(getSmux); // run and update the sensor multiplexer
+	StartTask(showDebugInfo);
 
 	if (autoMode == 1){
 		StartTask(findIr); // go until you find the ir beacon
@@ -59,5 +61,24 @@ task main(){
 		writeDebugStreamLine("Done. Stopping...");
 		wait10Msec(300);
 	}
+
+	if(autoMode == 3){
+		StartTask(placeBlock);
+		while(!placedBlock){
+		}
+		StopTask(placeBlock);
+	}
+
+	if(autoMode == 5){
+		StartTask(findWhiteLine);
+		while(!foundWhiteLine){
+
+		}
+	}
+	long rotations = 2;
+	while(nMotorEncoder[mDriveLeft] < (rotations * 4000)){
+		driveMotorsTo(100);
+	}
+	driveMotorsTo(0);
 
 }

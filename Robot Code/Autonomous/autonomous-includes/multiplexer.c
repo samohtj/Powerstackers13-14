@@ -2,8 +2,8 @@
 #include "drivers/lego-light.h"
 #include "drivers/hitechnic-gyro.h"
 
-//const tMUXSensor lightSenseLeft 	= msensor_S2_1;
-//const tMUXSensor lightSenseRight 	= msensor_S2_2;
+const tMUXSensor lightSenseLeft 	= msensor_S2_1;
+const tMUXSensor lightSenseRight 	= msensor_S2_2;
 #define gyroSense			msensor_S2_3
 //const tMUXSensor colorSense 			= msensor_S2_4;
 
@@ -16,13 +16,13 @@ task getSmux()
 {
 	bNxtLCDStatusDisplay = false;
 
-	//	LSsetActive(lightSenseLeft);
-	//LSsetActive(lightSenseRight);
+	LSsetActive(lightSenseLeft);
+	LSsetActive(lightSenseRight);
 	writeDebugStreamLine("Multiplexer setup ready");
 
 	while (true){
-		//rawLightLeft = LSvalRaw(lightSenseLeft);
-		//rawLightRight = LSvalRaw(lightSenseRight);
+		rawLightLeft = LSvalRaw(lightSenseLeft);
+		rawLightRight = LSvalRaw(lightSenseRight);
 		rawGyro = HTGYROreadRot(gyroSense);
 		//rawColor = LSvalRaw(colorSense);
 

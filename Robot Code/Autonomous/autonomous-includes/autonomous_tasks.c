@@ -17,6 +17,7 @@ short blockTurnDirection = CLOCKWISE;
 */
 bool foundIr = false;
 bool placedBlock = false;
+bool foundWhiteLine = false;
 
 /*
 * Set all motors to the input value
@@ -38,10 +39,29 @@ void driveMotorsTo(int i){
 	if (time100[T1] % 10 == 0) writeDebugStreamLine("Set drive motors to %d", i);
 }
 
+void moveXWheelRoations(int rotations, int inMotor){
+	writeDebugStreamLine("Moving %d rotations", rotations);
+	const int fullStrength = 75;
+	int encoderStartValue = nMotorEncoder[inMotor];
+	int encoderTargetValue = encoderStartValue + (rotations * 4000);
+	if(rotations > 0){
+		while(nMotorEncoder[inMotor] < encoderTargetValue){
+			driveMotorsTo(fullStrength);
+		}
+		driveMotorsTo(0);
+	}else{
+		while(nMotorEncoder[inMotor] > encoderTargetValue){
+			driveMotorsTo(-1 * fullStrength);
+		}
+	}
+	writeDebugStreamLine("Done");
+}
+
 /*
 * Turn to the specified degree angle
 */
 void turnXDegrees(float degreesToTurn){
+	const int turnStrength = 25;
 	float degreesSoFar = 0;						// Degrees turned thus far
 	int initialTurnReading = rawGyro;	// Take an initial reading from the gyro
 
@@ -71,6 +91,19 @@ void turnXDegrees(float degreesToTurn){
 	writeDebugStreamLine("Current angle: %2.2f", degreesSoFar);
 	writeDebugStreamLine("Target angle: %2.2f", degreesToTurn);
 	writeDebugStreamLine("While loop over");
+}
+
+task showDebugInfo(){
+	while(true){
+		nxtDisplayTextLine(0, "mtrEncL:%d", nMotorEncoder[mDriveLeft]);
+		nxtDisplayTextLine(1, "mtrEncR:%d", nMotorEncoder[mDriveRight]);
+		nxtDisplayTextLine(2, "LiL:%d", rawLightLeft);
+		nxtDisplayTextLine(3, "LiR:%d", rawLightRight);
+		nxtDisplayTextLine(4, "");
+		nxtDisplayTextLine(5, "");
+		nxtDisplayTextLine(6, "");
+		nxtDisplayTextLine(7, "");
+	}
 }
 
 /*
@@ -143,5 +176,24 @@ task placeBlock(){
 * Find the white line, and use it to align the robot
 */
 task findWhiteLine(){
+	const int slowThresh = 64;
+	bool foundLeft, foundRight = false;
 
+	foundWhiteLine = false;
+
+	driveMotorsTo(60);
+	while(!foundLeft || !foundRight){
+		if(rawLightLeft > slowThresh){
+			motor[mDriveLeft] = 0;
+			foundLeft = true;
+		}
+		if(rawLightRight > slowThresh){
+			motor[mDriveRight] = 0;
+			foundRight = true;
+		}
+
+	}
+	turnXDegrees(((getAutoMode() % 2 == 0)? 90 : -90));	// Turn left if the drive mode is even, right if it is odd
+
+	foundWhiteLine = true;
 }
