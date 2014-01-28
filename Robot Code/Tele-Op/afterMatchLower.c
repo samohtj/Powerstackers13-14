@@ -17,9 +17,9 @@ task main()
 	nxtDisplayTextLine(3, "<        >");
 	while(true){
 			if(nNxtButtonPressed == 2){
-				motor[mBsAngle] = 100;
-			}else if(nNxtButtonPressed == 1){
 				motor[mBsAngle] = -100;
+			}else if(nNxtButtonPressed == 1){
+				motor[mBsAngle] = 100;
 			}else{
 				motor[mBsAngle] = 0;
 			}

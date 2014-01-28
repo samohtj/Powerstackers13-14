@@ -6,18 +6,8 @@
 #include "color_mode_picker.c"
 
 /*
-* Define constants that define rotation directions
-*/
-#define CLOCKWISE 1
-#define COUNTERCLOCKWISE -1
-short blockTurnDirection = CLOCKWISE;
-
-/*
 * Flags to check that certain tasks are done
 */
-bool foundIr = false;
-bool placedBlock = false;
-bool foundWhiteLine = false;
 
 /*
 * Set all motors to the input value
@@ -39,19 +29,24 @@ void driveMotorsTo(int i){
 	if (time100[T1] % 10 == 0) writeDebugStreamLine("Set drive motors to %d", i);
 }
 
-void moveXWheelRoations(int rotations, int inMotor){
-	writeDebugStreamLine("Moving %d rotations", rotations);
-	const int fullStrength = 75;
-	int encoderStartValue = nMotorEncoder[inMotor];
-	int encoderTargetValue = encoderStartValue + (rotations * 4000);
-	if(rotations > 0){
-		while(nMotorEncoder[inMotor] < encoderTargetValue){
-			driveMotorsTo(fullStrength);
+float getTicksForFeet(float feet){
+	float ticks =  (float) feet * (12000 / PI);
+	return  ticks;
+}
+
+void goFeet(float feet, int speed){
+	writeDebugStreamLine("Moving %d feet", feet);
+	float ticks = getTicksForFeet(feet);
+	long encoderStartValue = nMotorEncoder[mDriveLeft];
+	long encoderTargetValue = (long) encoderStartValue + ticks;
+	if(feet > 0){
+		while(nMotorEncoder[mDriveLeft] < encoderTargetValue){
+			driveMotorsTo(speed);
 		}
 		driveMotorsTo(0);
 	}else{
-		while(nMotorEncoder[inMotor] > encoderTargetValue){
-			driveMotorsTo(-1 * fullStrength);
+		while(nMotorEncoder[mDriveLeft] > encoderTargetValue){
+			driveMotorsTo(-1 * speed);
 		}
 	}
 	writeDebugStreamLine("Done");
@@ -60,10 +55,10 @@ void moveXWheelRoations(int rotations, int inMotor){
 /*
 * Turn to the specified degree angle
 */
-void turnXDegrees(float degreesToTurn){
+void turnDegrees(float degreesToTurn){
 	const int turnStrength = 25;
 	float degreesSoFar = 0;						// Degrees turned thus far
-	int initialTurnReading = rawGyro;	// Take an initial reading from the gyro
+	int initialTurnReading = SensorValue[sGyro];	// Take an initial reading from the gyro
 
 	/*
 	* Decide to turn right or left
@@ -83,7 +78,7 @@ void turnXDegrees(float degreesToTurn){
 	*/
 	while (abs(degreesSoFar) < abs(degreesToTurn)){
 		wait1Msec(10);	// Let some time pass
-		int currentGyroReading = rawGyro - initialTurnReading;	// Edit the current gyro reading
+		int currentGyroReading = sGyro - initialTurnReading;	// Edit the current gyro reading
 		degreesSoFar = degreesSoFar + (currentGyroReading * 0.01); // Calculate the degrees turned so far (d=r*t)
 	}
 	driveMotorsTo(0);	// Stop the motors
@@ -109,20 +104,18 @@ task showDebugInfo(){
 /*
 * Go forward, and don't stop until you find the IR beacon
 */
-task findIr()
+void findIr(tMUXSensor activeIr, int fullStrength, int minStrength, int turnStrength)
 {
 	/*
 	* Declare some local variables
 	*/
 	const int slowThresh 			= 180;	// IR detection level where you slow down
 	const short stopThresh 		= 250;	// IR detection level where you stop completely
-	const int fullStrength 		= 25;		// max motor strenght for finding the IR
-	const int minStrength 		= 10;		// min motor strength for finding the IR
-	const int turnStrength 		= 25;		// strength of the motors while turning
 	short maxIrSig = 0;
+	bool foundIr = false;
 
-	while (true){		// Loop forever
-		maxIrSig = getIrStrength(IRS_R);
+	while (!foundIr){		// Loop forever
+		maxIrSig = getIrStrength(activeIr);
 
 		if (time100[T1] % 10 == 0){
 			clearDebugStream();
@@ -152,48 +145,46 @@ task findIr()
 /*
 * Turn the robot and place the block in the crate
 */
-task placeBlock(){
-	const int raiseRotations 	= 9;		// Number of motor rotations needed to lift the BS all the way up
+void placeBlock(int turnDirection){
+	const long liftEncoderValue	= 9;		// Number of motor rotations needed to lift the BS all the way up
 
-	turnXDegrees(90 * blockTurnDirection);			// Turn the robot 90 degrees in the chosen direction
-	writeDebugStreamLine("Raising blockSucker");// Print stuff to the debug screen
-	while (nMotorEncoder[mBsAngle] < (raiseRotations * 4000)){	// While the lift motor is below the upper value
+	turnDegrees(90 * turnDirection);			// Turn the robot 90 degrees in the chosen direction
+	while (nMotorEncoder[mBsAngle] < (liftEncoderValue)){	// While the lift motor is below the upper value
 			motor[mBsAngle] = 100;																	// Run the motor
 	}
 	motor[mBsAngle] = 0;						// Stop the motor
-	writeDebugStreamLine("blockSucker raised, placing block");
 	motor[mBsConveyor] = 100;				// Run the conveyor, drop the block
 	wait10Msec(200);								// Let some time pass
 	motor[mBsConveyor] = 0;					// Stop the motor
-	writeDebugStreamLine("Block placed, turning back");
-	turnXDegrees(90 * (-1 * blockTurnDirection));	// Turn 90 degrees back in the opposite direcgtion as before
-	writeDebugStreamLine("Done placing block");
-
-	placedBlock = true;							// Toggle the flag
+	turnDegrees(90 * (-1 * turnDirection));	// Turn 90 degrees back in the opposite direcgtion as before
 }
 
 /*
 * Find the white line, and use it to align the robot
 */
-task findWhiteLine(){
+void findWhiteLine(bool skipNearLine, int turnDirection){
 	const int slowThresh = 64;
-	bool foundLeft, foundRight = false;
-
-	foundWhiteLine = false;
-
-	driveMotorsTo(60);
-	while(!foundLeft || !foundRight){
-		if(rawLightLeft > slowThresh){
-			motor[mDriveLeft] = 0;
-			foundLeft = true;
-		}
-		if(rawLightRight > slowThresh){
-			motor[mDriveRight] = 0;
-			foundRight = true;
-		}
-
+	bool foundWhiteLine = false;
+	bool nearLineSkipped = true;
+	if(!skipNearLine){
+		nearLineSkipped = false;
 	}
-	turnXDegrees(((getAutoMode() % 2 == 0)? 90 : -90));	// Turn left if the drive mode is even, right if it is odd
 
-	foundWhiteLine = true;
+	driveMotorsTo(100);
+	while(!foundWhiteLine){
+		if(rawLightLeft > slowThresh || rawLightRight > slowThresh){
+			if(nearLineSkipped){
+				driveMotorsTo(0);
+				foundWhiteLine = true;
+			}
+			nearLineSkipped = true;
+		}
+	}
+}
+
+void returnToSpot(long distanceFromHome, long home){
+	while(nMotorEncoder[mDriveLeft] > (home + getTicksForFeet(distanceFromHome))){
+		driveMotorsTo(-100);
+	}
+	driveMotorsTo(0);
 }

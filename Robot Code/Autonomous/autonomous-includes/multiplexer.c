@@ -1,21 +1,22 @@
-#include "drivers/hitechnic-sensormux.h"
-#include "drivers/lego-light.h"
-#include "drivers/hitechnic-gyro.h"
+#include "hitechnic-sensormux.h"
+#include "lego-light.h"
+#include "hitechnic-irseeker-v2.h"
+#include "hitechnic-touchmux.h"
 
-const tMUXSensor lightSenseLeft 	= msensor_S2_1;
-const tMUXSensor lightSenseRight 	= msensor_S2_2;
-#define gyroSense			msensor_S2_3
-//const tMUXSensor colorSense 			= msensor_S2_4;
+const tMUXSensor irLeft 	= msensor_S2_1;
+const tMUXSensor irRight 	= msensor_S2_2;
+const tMUXSensor lightSenseLeft 	= msensor_S2_3;
+const tMUXSensor lightSenseRight 	= msensor_S2_4;
 
 int rawLightLeft;
 int rawLightRight;
-int rawGyro;
-int rawColor;
+
+bool touchInput1;
+bool touchInput2;
+bool touchInput3;
 
 task getSmux()
 {
-	bNxtLCDStatusDisplay = false;
-
 	LSsetActive(lightSenseLeft);
 	LSsetActive(lightSenseRight);
 	writeDebugStreamLine("Multiplexer setup ready");
@@ -23,13 +24,11 @@ task getSmux()
 	while (true){
 		rawLightLeft = LSvalRaw(lightSenseLeft);
 		rawLightRight = LSvalRaw(lightSenseRight);
-		rawGyro = HTGYROreadRot(gyroSense);
-		//rawColor = LSvalRaw(colorSense);
 
-		//nxtDisplayTextLine(1, "LightLeft: %4d", rawLightLeft);
-		//nxtDisplayTextLine(2, "LightRight: %4d",rawLightRight);
-		//nxtDisplayTextLine(3, "Gyro: %4d", rawGyro);
-		//nxtDisplayTextLine(4, "Color: %4d", rawColor);
+		touchInput1 = HTTMUXisActive(TMUX, 1);
+		touchInput2 = HTTMUXisActive(TMUX, 2);
+		touchInput3 = HTTMUXisActive(TMUX, 3);
+
 	}
 
 

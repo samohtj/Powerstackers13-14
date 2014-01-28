@@ -1,6 +1,6 @@
-#include "drivers/hitechnic-irseeker-v2.h"
+#include "hitechnic-irseeker-v2.h"
 
-int getIrStrength (int sensor)
+int getIrStrength (short sensor)
 {
 	// maximum direct signal
 	int maxSig = 0;
@@ -22,7 +22,7 @@ int getIrStrength (int sensor)
 	return maxSig;
 }
 
-int getIrDirection(int sensor){
+int getIrDirection(short sensor){
 	int dirDC = HTIRS2readDCDir(sensor);
 
 
