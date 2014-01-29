@@ -1,7 +1,7 @@
 /*
 * Include some necessary files
 */
-#include "get_ir.c"
+//#include "get_ir.c"
 #include "multiplexer.c"
 #include "color_mode_picker.c"
 
@@ -17,7 +17,7 @@ void allMotorsTo(int i){
 	motor[mDriveRight] 	= i;
 	motor[mBsAngle] 		= i;
 	motor[mBsConveyor] 	= i;
-	if (time100[T1] % 10 == 0) writeDebugStreamLine("Set all motors to %d", i);
+	writeDebugStreamLine("Set all motors to %d", i);
 }
 
 /*
@@ -94,8 +94,8 @@ task showDebugInfo(){
 		nxtDisplayTextLine(1, "mtrEncR:%d", nMotorEncoder[mDriveRight]);
 		nxtDisplayTextLine(2, "LiL:%d", rawLightLeft);
 		nxtDisplayTextLine(3, "LiR:%d", rawLightRight);
-		nxtDisplayTextLine(4, "");
-		nxtDisplayTextLine(5, "");
+		nxtDisplayTextLine(4, "touch:%d,%d,%d", touchInput1, touchInput2, touchInput3);
+		nxtDisplayTextLine(5, "irRL:%d,%d", SensorValue[irRight], SensorValue[irLeft]);
 		nxtDisplayTextLine(6, "");
 		nxtDisplayTextLine(7, "");
 	}
@@ -104,44 +104,61 @@ task showDebugInfo(){
 /*
 * Go forward, and don't stop until you find the IR beacon
 */
-void findIr(tMUXSensor activeIr, int fullStrength, int minStrength, int turnStrength)
+void findIrRight(int fullStrength, int minStrength, int turnStrength)
 {
+	writeDebugStreamLine("findIrRight entered");
 	/*
 	* Declare some local variables
 	*/
-	const int slowThresh 			= 180;	// IR detection level where you slow down
-	const short stopThresh 		= 250;	// IR detection level where you stop completely
-	short maxIrSig = 0;
+	const int slowThresh 			= 70;	// IR detection level where you slow down
+	const short stopThresh 		= 150;	// IR detection level where you stop completely
 	bool foundIr = false;
+	writeDebugStreamLine("Variables declared without incident");
 
-	while (!foundIr){		// Loop forever
-		maxIrSig = getIrStrength(activeIr);
+	while (!foundIr){		// Loop until IR is found
 
-		if (time100[T1] % 10 == 0){
-			clearDebugStream();
-			writeDebugStreamLine("Searching for IR");
-			if (maxIrSig > 0) writeDebugStreamLine("Got signal");
-			else writeDebugStreamLine("No or bad signal");
-			writeDebugStreamLine("Signal = %d", maxIrSig);
-			if (maxIrSig < slowThresh){ if (time100[T1] % 10 == 0) writeDebugStreamLine("MAX POWAH");}
-			if (maxIrSig >= slowThresh && maxIrSig < stopThresh){ if (time100[T1] % 10 == 0) writeDebugStreamLine("Min power");}
-			if (maxIrSig > stopThresh){if (time100[T1] % 10 == 0) writeDebugStreamLine("Found IR. Stopping...");}
-		}
-
-
-		if (maxIrSig < slowThresh){		// If the IR signal is less than the slow threshold
+		writeDebugStreamLine("Got IR strength");
+		if (irStrengthRight < slowThresh){		// If the IR signal is less than the slow threshold
 			driveMotorsTo(fullStrength);// Go full power
 		}
-		if (maxIrSig >= slowThresh && maxIrSig < stopThresh){	// If the IR signal is larger than the slow threshold
+		if (irStrengthRight >= slowThresh && irStrengthRight < stopThresh){	// If the IR signal is larger than the slow threshold
 			driveMotorsTo(minStrength);													// Go to low power
 		}
-		if (maxIrSig >= stopThresh){	// If the IR signal is greater than the stop threshold
+		if (irStrengthRight >= stopThresh){	// If the IR signal is greater than the stop threshold
 			driveMotorsTo(0);						// Stop the motors
 			foundIr = true;							// Toggle the flag
+			PlaySound(soundBeepBeep);
 		}
 	}
 }
 
+void findIrLeft(int fullStrength, int minStrength, int turnStrength)
+{
+	writeDebugStreamLine("findIrLeft entered");
+	/*
+	* Declare some local variables
+	*/
+	const int slowThresh 			= 70;	// IR detection level where you slow down
+	const short stopThresh 		= 150;	// IR detection level where you stop completely
+	bool foundIr = false;
+	writeDebugStreamLine("Variables declared without incident");
+
+	while (!foundIr){		// Loop until IR is found
+
+		writeDebugStreamLine("Got IR strength");
+		if (irStrengthLeft < slowThresh){		// If the IR signal is less than the slow threshold
+			driveMotorsTo(fullStrength);// Go full power
+		}
+		if (irStrengthLeft >= slowThresh && irStrengthLeft < stopThresh){	// If the IR signal is larger than the slow threshold
+			driveMotorsTo(minStrength);													// Go to low power
+		}
+		if (irStrengthLeft >= stopThresh){	// If the IR signal is greater than the stop threshold
+			driveMotorsTo(0);						// Stop the motors
+			foundIr = true;							// Toggle the flag
+			PlaySound(soundBeepBeep);
+		}
+	}
+}
 /*
 * Turn the robot and place the block in the crate
 */
