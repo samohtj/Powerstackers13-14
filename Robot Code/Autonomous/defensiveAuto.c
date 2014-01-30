@@ -22,13 +22,13 @@ task main()
 	StartTask(getSmux);
 
 	if(touchInput1){
-		goFeet(4);
+		goFeet(4,100);
 		if(touchInput2){
 			turnDegrees(90);
-			findIrLeft();
+			findIrLeft(100,50,25);
 		}else{
 			turnDegrees(-90);
-			findIrRight();
+			findIrRight(100,50,25);
 		}
 	}else{
 		findWhiteLine(true, 1);
