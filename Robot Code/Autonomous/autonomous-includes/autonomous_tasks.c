@@ -17,7 +17,6 @@ void allMotorsTo(int i){
 	motor[mDriveRight] 	= i;
 	motor[mBsAngle] 		= i;
 	motor[mBsConveyor] 	= i;
-	writeDebugStreamLine("Set all motors to %d", i);
 }
 
 /*
@@ -26,17 +25,18 @@ void allMotorsTo(int i){
 void driveMotorsTo(int i){
 	motor[mDriveLeft] 	= i;
 	motor[mDriveRight] 	= i;
-	if (time100[T1] % 10 == 0) writeDebugStreamLine("Set drive motors to %d", i);
 }
 
 float getTicksForFeet(float feet){
-	float ticks =  (float) feet * (12000 / PI);
+	float ticks =  (float) feet * (1200 / PI);
 	return  ticks;
 }
 
 void goFeet(float feet, int speed){
 	writeDebugStreamLine("Moving %d feet", feet);
 	float ticks = getTicksForFeet(feet);
+	writeDebugStreamLine("Moving %5.2f ticks", ticks);
+	writeDebugStreamLine("Rotations to go: %5.2f", (ticks / 400));
 	long encoderStartValue = nMotorEncoder[mDriveLeft];
 	long encoderTargetValue = (long) encoderStartValue + ticks;
 	if(feet > 0){
@@ -96,8 +96,12 @@ task showDebugInfo(){
 		nxtDisplayTextLine(3, "LiR:%d", rawLightRight);
 		nxtDisplayTextLine(4, "touch:%d,%d,%d", touchInput1, touchInput2, touchInput3);
 		nxtDisplayTextLine(5, "irRL:%d,%d", SensorValue[irRight], SensorValue[irLeft]);
-		nxtDisplayTextLine(6, "");
+		nxtDisplayTextLine(6, "HighestIR:%d", irStrengthRight);
 		nxtDisplayTextLine(7, "");
+
+		clearDebugStream();
+		writeDebugStreamLine("R-Encoder: %d", nMotorEncoder[mDriveRight]);
+		writeDebugStreamLine("L-Encoder: %d", nMotorEncoder[mDriveLeft]);
 	}
 }
 
@@ -110,14 +114,13 @@ void findIrRight(int fullStrength, int minStrength, int turnStrength)
 	/*
 	* Declare some local variables
 	*/
-	const int slowThresh 			= 70;	// IR detection level where you slow down
-	const short stopThresh 		= 150;	// IR detection level where you stop completely
+	const int slowThresh 			= 50;	// IR detection level where you slow down
+	const short stopThresh 		= 50;	// IR detection level where you stop completely
 	bool foundIr = false;
 	writeDebugStreamLine("Variables declared without incident");
 
 	while (!foundIr){		// Loop until IR is found
 
-		writeDebugStreamLine("Got IR strength");
 		if (irStrengthRight < slowThresh){		// If the IR signal is less than the slow threshold
 			driveMotorsTo(fullStrength);// Go full power
 		}
@@ -138,14 +141,13 @@ void findIrLeft(int fullStrength, int minStrength, int turnStrength)
 	/*
 	* Declare some local variables
 	*/
-	const int slowThresh 			= 70;	// IR detection level where you slow down
-	const short stopThresh 		= 150;	// IR detection level where you stop completely
+	const int slowThresh 			= 50;	// IR detection level where you slow down
+	const short stopThresh 		= 70;	// IR detection level where you stop completely
 	bool foundIr = false;
 	writeDebugStreamLine("Variables declared without incident");
 
 	while (!foundIr){		// Loop until IR is found
 
-		writeDebugStreamLine("Got IR strength");
 		if (irStrengthLeft < slowThresh){		// If the IR signal is less than the slow threshold
 			driveMotorsTo(fullStrength);// Go full power
 		}
@@ -179,7 +181,7 @@ void placeBlock(int turnDirection){
 /*
 * Find the white line, and use it to align the robot
 */
-void findWhiteLine(bool skipNearLine, int turnDirection){
+void findWhiteLine(bool skipNearLine){
 	const int slowThresh = 64;
 	bool foundWhiteLine = false;
 	bool nearLineSkipped = true;
@@ -204,4 +206,10 @@ void returnToSpot(long distanceFromHome, long home){
 		driveMotorsTo(-100);
 	}
 	driveMotorsTo(0);
+}
+
+task gyroAlign(){
+	while(true){
+
+	}
 }

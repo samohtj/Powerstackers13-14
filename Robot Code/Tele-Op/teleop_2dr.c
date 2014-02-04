@@ -128,7 +128,7 @@ task main(){
   ClearTimer(T1);								// Reset the timer
 
 
-  //waitForStart();   						// wait for start of tele-op phase
+  waitForStart();   						// wait for start of tele-op phase
 
   while (true){											// Loop forever
   	getJoystickSettings(joystick);	// Get the regular joystick information

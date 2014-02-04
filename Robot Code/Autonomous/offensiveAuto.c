@@ -14,6 +14,14 @@
 #include "JoystickDriver.c"
 #include "autonomous-includes/autonomous_tasks.c"
 
+
+
+void initializeRobot(){
+		touchInput1 = true;
+		touchInput2 = true;
+		touchInput3 = true;
+}
+
 task main(){
 	StartTask(showDebugInfo);
 	nMotorEncoder[mDriveLeft] = 0;
@@ -21,36 +29,62 @@ task main(){
 	clearDebugStream();
 	StartTask(getSmux);
 
-	if(touchInput3){		// If the "wait" button is activated
-		wait10Msec(1000);
-	}
+	initializeRobot();
+//	waitForStart();
 
-	if(touchInput2){		// If the "far corner/near corner" button is activated
-		findIrRight(60, 25, 25);	// Find the IR signal using the left sensor
-		placeBlock(1);						// Place the block in the basket
-	}else{
-		findIrLeft(25, 25, 25);		// Find the IR signal using the right sensor
-		placeBlock(-1);						// Place the block in the basket
-	}
+	/**
+		WAIT
+	*/
+	//if(touchInput3){		// If the "wait" button is activated
+	//	wait10Msec(1000);
+	//}
 
-	if(touchInput1){		// If we're going for the near side of the ramp
-		returnToSpot(1, encoderHome);	// Return to the original position before turning
-	}
+	/**
+		FIND IR / PLACE BLOCK
+	*/
+	//if(touchInput2){		// If the "far corner/near corner" button is activated
+	//	findIrRight(45, 25, 25);	// Find the IR signal using the left sensor
+	//	placeBlock(-1);						// Place the block in the basket
+	//}else{
+	//	findIrLeft(25, 25, 25);		// Find the IR signal using the right sensor
+	//	placeBlock(1);						// Place the block in the basket
+	//}
 
-	if(!touchInput2){		// If we're starting from the near side
-		turnDegrees(90);
-	}else{
-		turnDegrees(-90);
-	}
+	/**
+		RETURN TO START POSITION
+	*/
+	//if(touchInput1){		// If we're going for the near side of the ramp
+	//	returnToSpot(1, encoderHome);	// Return to the original position before turning
+	//}
 
-	findWhiteLine(false, 1);
+	/**
+		TURN TOWARDS THE RAMP
+	*/
+	//if(!touchInput2){		// If we're starting from the near side
+	//	turnDegrees(90);
+	//}else{
+	//	turnDegrees(-90);
+	//}
 
-	if(!touchInput2){
-		turnDegrees(90);
-	}else{
-		turnDegrees(-90);
-	}
+	/**
+		FIND WHITE LINE
+	*/
+	findWhiteLine(false);
 
-	goFeet(2, 100);
+	/**
+		TURN TO GO UP THE RAMP
+	*/
+	//if(!touchInput2){
+	//	turnDegrees(-90);
+	//}else{
+	//	turnDegrees(90);
+	//}
+
+	/**
+		GO UP THE RAMP
+	*/
+	//goFeet(2, 100);
+
+	writeDebugStreamLine("autoStrength = ", irStrengthRight);
 
 }
