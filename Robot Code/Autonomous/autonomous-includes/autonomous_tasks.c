@@ -28,26 +28,44 @@ void driveMotorsTo(int i){
 }
 
 float getTicksForFeet(float feet){
-	float ticks =  (float) feet * (1200 / PI);
+	float ticks =  (float) feet * (12000 / PI);
 	return  ticks;
+}
+
+void goTicks(long ticks, int speed){
+	long target = nMotorEncoder[mDriveRight] + ticks;
+	writeDebugStreamLine("%5.2f", target);
+	while(nMotorEncoder[mDriveRight] < target){
+		driveMotorsTo(speed);
+	}
+	writeDebugStreamLine("Final encoder value:  %5.2f", nMotorEncoder[mDriveRight]);
+	allMotorsTo(0);
 }
 
 void goFeet(float feet, int speed){
 	writeDebugStreamLine("Moving %d feet", feet);
 	float ticks = getTicksForFeet(feet);
 	writeDebugStreamLine("Moving %5.2f ticks", ticks);
-	writeDebugStreamLine("Rotations to go: %5.2f", (ticks / 400));
-	long encoderStartValue = nMotorEncoder[mDriveLeft];
+	nxtDisplayTextLine(7, "encTar:%5.2f", ticks);
+	writeDebugStreamLine("Rotations to go: %5.2f", (ticks / 4000));
+	long encoderStartValue = nMotorEncoder[mDriveRight];
 	long encoderTargetValue = (long) encoderStartValue + ticks;
+	writeDebugStreamLine("encoder target = %5.2f", encoderTargetValue);
+
 	if(feet > 0){
-		while(nMotorEncoder[mDriveLeft] < encoderTargetValue){
+		writeDebugStreamLine("going forwards");
+		while(abs(nMotorEncoder[mDriveRight]) < encoderTargetValue){
 			driveMotorsTo(speed);
+			writeDebugStreamLine("encoder value: %5.2f ; target value: %5.2f", nMotorEncoder[mDriveRight], encoderTargetValue);
 		}
+		writeDebugStreamLine("loop over");
 		driveMotorsTo(0);
 	}else{
-		while(nMotorEncoder[mDriveLeft] > encoderTargetValue){
+		writeDebugStreamLine("Going backwards");
+		while(abs(nMotorEncoder[mDriveLeft]) < encoderTargetValue){
 			driveMotorsTo(-1 * speed);
 		}
+		driveMotorsTo(0);
 	}
 	writeDebugStreamLine("Done");
 }
@@ -95,13 +113,13 @@ task showDebugInfo(){
 		nxtDisplayTextLine(2, "LiL:%d", rawLightLeft);
 		nxtDisplayTextLine(3, "LiR:%d", rawLightRight);
 		nxtDisplayTextLine(4, "touch:%d,%d,%d", touchInput1, touchInput2, touchInput3);
-		nxtDisplayTextLine(5, "irRL:%d,%d", SensorValue[irRight], SensorValue[irLeft]);
+		//nxtDisplayTextLine(5, "irRL:%d,%d", SensorValue[irRight], SensorValue[irLeft]);
 		nxtDisplayTextLine(6, "HighestIR:%d", irStrengthRight);
-		nxtDisplayTextLine(7, "");
+		//nxtDisplayTextLine(7, "");
 
-		clearDebugStream();
-		writeDebugStreamLine("R-Encoder: %d", nMotorEncoder[mDriveRight]);
-		writeDebugStreamLine("L-Encoder: %d", nMotorEncoder[mDriveLeft]);
+		//clearDebugStream();
+		//writeDebugStreamLine("R-Encoder: %d", nMotorEncoder[mDriveRight]);
+		//writeDebugStreamLine("L-Encoder: %d", nMotorEncoder[mDriveLeft]);
 	}
 }
 

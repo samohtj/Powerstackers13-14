@@ -25,6 +25,7 @@ task main()
 	//StartTask(getSmux);
 	StartTask(showDebugInfo);
 
-	goFeet(2.0, 50);
+	//goFeet(2.0, 50);
+	goTicks(1325, 50);
 
 }
