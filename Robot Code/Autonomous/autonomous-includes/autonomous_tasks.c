@@ -4,7 +4,7 @@
 //#include "get_ir.c"
 #include "multiplexer.c"
 #include "color_mode_picker.c"
-
+#include "hitechnic-gyro.h"
 /*
 * Flags to check that certain tasks are done
 */
@@ -35,8 +35,17 @@ float getTicksForFeet(float feet){
 void goTicks(long ticks, int speed){
 	long target = nMotorEncoder[mDriveRight] + ticks;
 	writeDebugStreamLine("%5.2f", target);
-	while(nMotorEncoder[mDriveRight] < target){
-		driveMotorsTo(speed);
+	int leftMotorSpeed = speed + 15;
+	if(ticks > 0){
+		while(nMotorEncoder[mDriveRight] < target){
+			motor[mDriveRight] = speed;
+			motor[mDriveLeft] = leftMotorSpeed;
+		}
+	}else{
+		while(nMotorEncoder[mDriveRight] > target){
+			motor[mDriveRight] = -1 * speed;
+			motor[mDriveLeft] = -1 * leftMotorSpeed;
+		}
 	}
 	writeDebugStreamLine("Final encoder value:  %5.2f", nMotorEncoder[mDriveRight]);
 	allMotorsTo(0);
@@ -60,7 +69,7 @@ void goFeet(float feet, int speed){
 		}
 		writeDebugStreamLine("loop over");
 		driveMotorsTo(0);
-	}else{
+		}else{
 		writeDebugStreamLine("Going backwards");
 		while(abs(nMotorEncoder[mDriveLeft]) < encoderTargetValue){
 			driveMotorsTo(-1 * speed);
@@ -73,11 +82,10 @@ void goFeet(float feet, int speed){
 /*
 * Turn to the specified degree angle
 */
-void turnDegrees(float degreesToTurn){
-	const int turnStrength = 25;
+void turnDegrees(float degreesToTurn, int turnStrength){
 	float degreesSoFar = 0;						// Degrees turned thus far
-	int initialTurnReading = SensorValue[sGyro];	// Take an initial reading from the gyro
-
+	int initialTurnReading = HTGYROreadRot(sGyro);	// Take an initial reading from the gyro
+	writeDebugStreamLine("Initial reading: %d", initialTurnReading);
 	/*
 	* Decide to turn right or left
 	*/
@@ -96,11 +104,11 @@ void turnDegrees(float degreesToTurn){
 	*/
 	while (abs(degreesSoFar) < abs(degreesToTurn)){
 		wait1Msec(10);	// Let some time pass
-		int currentGyroReading = sGyro - initialTurnReading;	// Edit the current gyro reading
+		int currentGyroReading = HTGYROreadRot(sGyro) - initialTurnReading;	// Edit the current gyro reading
 		degreesSoFar = degreesSoFar + (currentGyroReading * 0.01); // Calculate the degrees turned so far (d=r*t)
+		writeDebugStreamLine("Currentangle: %d", degreesSoFar);
 	}
 	driveMotorsTo(0);	// Stop the motors
-	clearDebugStream();
 	writeDebugStreamLine("Current angle: %2.2f", degreesSoFar);
 	writeDebugStreamLine("Target angle: %2.2f", degreesToTurn);
 	writeDebugStreamLine("While loop over");
@@ -113,7 +121,7 @@ task showDebugInfo(){
 		nxtDisplayTextLine(2, "LiL:%d", rawLightLeft);
 		nxtDisplayTextLine(3, "LiR:%d", rawLightRight);
 		nxtDisplayTextLine(4, "touch:%d,%d,%d", touchInput1, touchInput2, touchInput3);
-		//nxtDisplayTextLine(5, "irRL:%d,%d", SensorValue[irRight], SensorValue[irLeft]);
+		nxtDisplayTextLine(5, "irRL:%d,%d", irStrengthLeft, irStrengthRight);
 		nxtDisplayTextLine(6, "HighestIR:%d", irStrengthRight);
 		//nxtDisplayTextLine(7, "");
 
@@ -160,9 +168,8 @@ void findIrLeft(int fullStrength, int minStrength, int turnStrength)
 	* Declare some local variables
 	*/
 	const int slowThresh 			= 50;	// IR detection level where you slow down
-	const short stopThresh 		= 70;	// IR detection level where you stop completely
+	const short stopThresh 		= 50;	// IR detection level where you stop completely
 	bool foundIr = false;
-	writeDebugStreamLine("Variables declared without incident");
 
 	while (!foundIr){		// Loop until IR is found
 
@@ -177,7 +184,9 @@ void findIrLeft(int fullStrength, int minStrength, int turnStrength)
 			foundIr = true;							// Toggle the flag
 			PlaySound(soundBeepBeep);
 		}
+
 	}
+	writeDebugStreamLine("Maximum value detected: %d", irStrengthLeft);
 }
 /*
 * Turn the robot and place the block in the crate
@@ -185,15 +194,15 @@ void findIrLeft(int fullStrength, int minStrength, int turnStrength)
 void placeBlock(int turnDirection){
 	const long liftEncoderValue	= 9;		// Number of motor rotations needed to lift the BS all the way up
 
-	turnDegrees(90 * turnDirection);			// Turn the robot 90 degrees in the chosen direction
+	turnDegrees(90 * turnDirection, 25);			// Turn the robot 90 degrees in the chosen direction
 	while (nMotorEncoder[mBsAngle] < (liftEncoderValue)){	// While the lift motor is below the upper value
-			motor[mBsAngle] = 100;																	// Run the motor
+		motor[mBsAngle] = 100;																	// Run the motor
 	}
 	motor[mBsAngle] = 0;						// Stop the motor
 	motor[mBsConveyor] = 100;				// Run the conveyor, drop the block
 	wait10Msec(200);								// Let some time pass
 	motor[mBsConveyor] = 0;					// Stop the motor
-	turnDegrees(90 * (-1 * turnDirection));	// Turn 90 degrees back in the opposite direcgtion as before
+	turnDegrees(90 * (-1 * turnDirection), 25);	// Turn 90 degrees back in the opposite direcgtion as before
 }
 
 /*
@@ -230,4 +239,23 @@ task gyroAlign(){
 	while(true){
 
 	}
+}
+
+void suckerToDropPosition(){
+	const long topEncoderPos = 7500;
+	const long startEncoderPos = nMotorEncoder[mBsAngle];
+	const long target = abs(startEncoderPos + topEncoderPos);
+	writeDebugStreamLine("Startingn encoder value: %d, going to %d", nMotorEncoder[mBsAngle], target);
+	while(nMotorEncoder[mBsAngle] < target){
+		motor[mBsAngle] = 100;
+		writeDebugStreamLine("Lift encoder value: %d", nMotorEncoder[mBsAngle]);
+	}
+	motor[mBsAngle] = 0;
+	writeDebugStreamLine("Done raising");
+}
+
+void spitBlock(){
+	motor[mBsConveyor] = -100;
+	wait10Msec(300);
+	motor[mBsConveyor] = 0;
 }

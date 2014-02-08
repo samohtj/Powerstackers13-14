@@ -36,6 +36,8 @@ task getSmux()
 			writeDebugStreamLine("Something's wrong");
 		}
 
+		writeDebugStreamLine("IR Left:%d IR Right: %d", irStrengthLeft, irStrengthRight);
+
 		touchInput1 = HTTMUXisActive(TMUX, 1);
 		touchInput2 = HTTMUXisActive(TMUX, 2);
 		touchInput3 = HTTMUXisActive(TMUX, 3);

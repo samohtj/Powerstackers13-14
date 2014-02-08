@@ -13,19 +13,29 @@
 #include "JoystickDriver.c"
 #include "autonomous-includes/autonomous_tasks.c"
 
+// 1 wheel rotation = 1350 ticks
+
 task main()
 {
 	eraseDisplay();
+	clearDebugStream();
 	nxtDisplayCenteredBigTextLine(0, "AUTO");
 	nxtDisplayCenteredBigTextLine(2, "READY");
 	nMotorEncoder[mDriveLeft] = 0;
 	nMotorEncoder[mDriveRight] = 0;
+	nMotorEncoder[mBsAngle] = 0;
 	//waitForStart();
 	nxtDisplayCenteredBigTextLine(2, "RUNNING");
-	//StartTask(getSmux);
+	StartTask(getSmux);
 	StartTask(showDebugInfo);
 
-	//goFeet(2.0, 50);
-	goTicks(1325, 50);
+	suckerToDropPosition();
+	goTicks(2125, 50);
+	spitBlock();
+	goTicks(-1000, 50);
+	turnDegrees(60, 75);
+	goTicks(2125, 100);
+	turnDegrees(-45, 75);
+	goTicks(4000, 100);
 
 }

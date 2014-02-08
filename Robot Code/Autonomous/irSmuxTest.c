@@ -42,38 +42,40 @@ task main ()
 
   while (true)
   {
-    //// Read the current non modulated signal direction
-    //_dirDC = HTIRS2readDCDir(irLeft);
-    //if (_dirDC < 0)
-    //  break; // I2C read error occurred
-
-    //// read the current modulated signal direction
-    //_dirAC = HTIRS2readACDir(irLeft);
-    //if (_dirAC < 0)
-    //  break; // I2C read error occurred
-
-    //// Read the individual signal strengths of the internal sensors
-    //// Do this for both unmodulated (DC) and modulated signals (AC)
-    //if (!HTIRS2readAllDCStrength(irLeft, dcS1, dcS2, dcS3, dcS4, dcS5))
-    //  break; // I2C read error occurred
-    //if (!HTIRS2readAllACStrength(irLeft, acS1, acS2, acS3, acS4, acS5 ))
-    //  break; // I2C read error occurred
-
-    // Read the Enhanced direction and strength
-		if (!HTIRS2readEnhanced(irLeft, _dirEnh, _strEnh))
+    // Read the current non modulated signal direction
+    _dirDC = HTIRS2readDCDir(msensor_S2_1);
+    if (_dirDC < 0)
       break; // I2C read error occurred
 
-    //displayText3(1, "D", _dirDC, _dirAC, _dirEnh);
-    //displayText(2, "0", dcS1, acS1);
-    //displayText(3, "1", dcS2, acS2);
-    displayText3(4, "2", dcS3, acS3, _strEnh);
-    //displayText(5, "3", dcS4, acS4);
-    //displayText(6, "4", dcS5, acS5);
+    // read the current modulated signal direction
+    _dirAC = HTIRS2readACDir(msensor_S2_1);
+    if (_dirAC < 0)
+      break; // I2C read error occurred
 
-    //if (HTSMUXreadPowerStatus(HTSMUX))
-    //  nxtDisplayTextLine(7, "Batt: bad");
-    //else
-    //  nxtDisplayTextLine(7, "Batt: good");
+    // Read the individual signal strengths of the internal sensors
+    // Do this for both unmodulated (DC) and modulated signals (AC)
+    if (!HTIRS2readAllDCStrength(msensor_S2_1, dcS1, dcS2, dcS3, dcS4, dcS5))
+      break; // I2C read error occurred
+    if (!HTIRS2readAllACStrength(msensor_S2_1, acS1, acS2, acS3, acS4, acS5 ))
+      break; // I2C read error occurred
+
+    // Read the Enhanced direction and strength
+		if (!HTIRS2readEnhanced(msensor_S2_1, _dirEnh, _strEnh))
+      break; // I2C read error occurred
+
+    displayText3(1, "D", _dirDC, _dirAC, _dirEnh);
+    displayText(2, "0", dcS1, acS1);
+    displayText(3, "1", dcS2, acS2);
+    displayText3(4, "2", dcS3, acS3, _strEnh);
+    displayText(5, "3", dcS4, acS4);
+    displayText(6, "4", dcS5, acS5);
+
+    if (HTSMUXreadPowerStatus(HTSMUX))
+      nxtDisplayTextLine(7, "Batt: bad");
+    else
+      nxtDisplayTextLine(7, "Batt: good");
+
+    writeDebugStreamLine("IR signal: %d", _strEnh);
   }
 }
 
