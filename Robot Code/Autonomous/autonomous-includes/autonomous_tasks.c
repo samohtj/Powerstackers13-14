@@ -4,7 +4,7 @@
 //#include "get_ir.c"
 #include "multiplexer.c"
 #include "color_mode_picker.c"
-#include "hitechnic-gyro.h"
+
 /*
 * Flags to check that certain tasks are done
 */
@@ -34,7 +34,7 @@ float getTicksForFeet(float feet){
 
 void goTicks(long ticks, int speed){
 	long target = nMotorEncoder[mDriveRight] + ticks;
-	writeDebugStreamLine("%5.2f", target);
+	writeDebugStreamLine("MOVING TICKS\ntarget: %5.2f", target);
 	int leftMotorSpeed = speed + 15;
 	if(ticks > 0){
 		while(nMotorEncoder[mDriveRight] < target){
@@ -47,7 +47,7 @@ void goTicks(long ticks, int speed){
 			motor[mDriveLeft] = -1 * leftMotorSpeed;
 		}
 	}
-	writeDebugStreamLine("Final encoder value:  %5.2f", nMotorEncoder[mDriveRight]);
+	writeDebugStreamLine("final:  %5.2f", nMotorEncoder[mDriveRight]);
 	allMotorsTo(0);
 }
 
@@ -85,7 +85,8 @@ void goFeet(float feet, int speed){
 void turnDegrees(float degreesToTurn, int turnStrength){
 	float degreesSoFar = 0;						// Degrees turned thus far
 	int initialTurnReading = HTGYROreadRot(sGyro);	// Take an initial reading from the gyro
-	writeDebugStreamLine("Initial reading: %d", initialTurnReading);
+	writeDebugStreamLine("TURNING\ninitial reading: %d", initialTurnReading);
+	writeDebugStreamLine("Target angle: %2.2f", degreesToTurn);
 	/*
 	* Decide to turn right or left
 	*/
@@ -109,9 +110,7 @@ void turnDegrees(float degreesToTurn, int turnStrength){
 		writeDebugStreamLine("Currentangle: %d", degreesSoFar);
 	}
 	driveMotorsTo(0);	// Stop the motors
-	writeDebugStreamLine("Current angle: %2.2f", degreesSoFar);
-	writeDebugStreamLine("Target angle: %2.2f", degreesToTurn);
-	writeDebugStreamLine("While loop over");
+	writeDebugStreamLine("final angle: %2.2f", degreesSoFar);
 }
 
 task showDebugInfo(){
@@ -134,7 +133,7 @@ task showDebugInfo(){
 /*
 * Go forward, and don't stop until you find the IR beacon
 */
-void findIrRight(int fullStrength, int minStrength, int turnStrength)
+short findIrRight(int fullStrength, int minStrength, int turnStrength)
 {
 	writeDebugStreamLine("findIrRight entered");
 	/*
@@ -159,9 +158,23 @@ void findIrRight(int fullStrength, int minStrength, int turnStrength)
 			PlaySound(soundBeepBeep);
 		}
 	}
+
+		const long basketDist1 = 1300;
+		const long basketDist2 = 2600;
+		const long basketDist3 = 3900;
+		short basket;
+		if(nMotorEncoder[mDriveRight] < basketDist1)
+			basket = 1;
+		else if(nMotorEncoder[mDriveRight] < basketDist2)
+			basket = 2;
+		else if(nMotorEncoder[mDriveRight] < basketDist3)
+			basket = 3;
+		else
+			basket = 4;
+		return basket;
 }
 
-void findIrLeft(int fullStrength, int minStrength, int turnStrength)
+short findIrLeft(int fullStrength, int minStrength, int turnStrength)
 {
 	writeDebugStreamLine("findIrLeft entered");
 	/*
@@ -172,7 +185,7 @@ void findIrLeft(int fullStrength, int minStrength, int turnStrength)
 	bool foundIr = false;
 
 	while (!foundIr){		// Loop until IR is found
-
+		writeDebugStreamLine("IR=%d", irStrengthLeft);
 		if (irStrengthLeft < slowThresh){		// If the IR signal is less than the slow threshold
 			driveMotorsTo(fullStrength);// Go full power
 		}
@@ -184,9 +197,22 @@ void findIrLeft(int fullStrength, int minStrength, int turnStrength)
 			foundIr = true;							// Toggle the flag
 			PlaySound(soundBeepBeep);
 		}
-
 	}
 	writeDebugStreamLine("Maximum value detected: %d", irStrengthLeft);
+
+		const long basketDist1 = 1300;
+		const long basketDist2 = 2600;
+		const long basketDist3 = 3900;
+		short basket;
+		if(nMotorEncoder[mDriveRight] < basketDist1)
+			basket = 1;
+		else if(nMotorEncoder[mDriveRight] < basketDist2)
+			basket = 2;
+		else if(nMotorEncoder[mDriveRight] < basketDist3)
+			basket = 3;
+		else
+			basket = 4;
+		return basket;
 }
 /*
 * Turn the robot and place the block in the crate
@@ -237,7 +263,7 @@ void returnToSpot(long distanceFromHome, long home){
 
 task gyroAlign(){
 	while(true){
-
+		writeDebugStreamLine("hi");
 	}
 }
 
@@ -258,4 +284,21 @@ void spitBlock(){
 	motor[mBsConveyor] = -100;
 	wait10Msec(300);
 	motor[mBsConveyor] = 0;
+}
+
+int getFieldSide(){
+	bool gotInput = false;
+	int side = 0;
+	eraseDisplay();
+	do{
+		nxtDisplayTextLine(0, "Right or left side?");
+		nxtDisplayTextLine(3, "Left   Right");
+		nxtDisplayTextLine(4, " <       >");
+		if(nNxtButtonPressed == 2){
+			side = -1;
+		}else if(nNxtButtonPressed == 1){
+			side = 1;
+		}
+	}while(!gotInput);
+	return side;
 }

@@ -2,6 +2,7 @@
 #include "lego-light.h"
 #include "hitechnic-irseeker-v2.h"
 #include "hitechnic-touchmux.h"
+#include "hitechnic-gyro.h"
 
 const tMUXSensor irLeft = msensor_S2_1;
 const tMUXSensor irRight = msensor_S2_2;
@@ -12,6 +13,7 @@ int rawLightLeft;
 int rawLightRight;
 int irStrengthLeft;
 int irStrengthRight;
+int gyroVel;
 
 bool touchInput1;
 bool touchInput2;
@@ -29,18 +31,20 @@ task getSmux()
 		rawLightLeft = LSvalRaw(lightSenseLeft);
 		rawLightRight = LSvalRaw(lightSenseRight);
 
-		if(!HTIRS2readEnhanced(msensor_S2_1, dummy, irStrengthLeft)){
+		if(!HTIRS2readEnhanced(IRS, dummy, irStrengthLeft)){
 			writeDebugStreamLine("Something's wrong");
 		}
-		if(!HTIRS2readEnhanced(msensor_S2_2, dummy, irStrengthRight)){
-			writeDebugStreamLine("Something's wrong");
-		}
+		//if(!HTIRS2readEnhanced(msensor_S2_2, dummy, irStrengthRight)){
+		//	writeDebugStreamLine("Something's wrong");
+		//}
 
-		writeDebugStreamLine("IR Left:%d IR Right: %d", irStrengthLeft, irStrengthRight);
+		gyroVel = HTGYROreadRot(msensor_S2_1);
 
-		touchInput1 = HTTMUXisActive(TMUX, 1);
-		touchInput2 = HTTMUXisActive(TMUX, 2);
-		touchInput3 = HTTMUXisActive(TMUX, 3);
+		//writeDebugStreamLine("IR Left:%d IR Right: %d", irStrengthLeft, irStrengthRight);
+
+		//touchInput1 = HTTMUXisActive(TMUX, 1);
+		//touchInput2 = HTTMUXisActive(TMUX, 2);
+		//touchInput3 = HTTMUXisActive(TMUX, 3);
 
 	}
 
