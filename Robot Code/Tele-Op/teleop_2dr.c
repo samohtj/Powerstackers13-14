@@ -106,12 +106,12 @@ void getCustomJoystickSettings(){
  * Print information to the screen
  */
 void displayButtonValues(){
-	  nxtDisplayTextLine(0, "btnConv:%d",		btnConveyor);	// Left drive joystick
-  	nxtDisplayTextLine(1, "btnRev:%d",	btnReverse);	// Right drive joystick
+	  nxtDisplayTextLine(0, "btnConv:%d",		btnConveyor);		// Left drive joystick
+  	nxtDisplayTextLine(1, "btnRev:%d",	btnReverse);			// Right drive joystick
 		nxtDisplayTextLine(3, "stickBlSt:%d", stickBlockStop);	// Brick stopper button
 		nxtDisplayTextLine(4, "mtrBlock:%d", motor[mBlockStop]);
   	nxtDisplayTextLine(5, "blEnc:%d", nMotorEncoder[mBlockStop]);	// Encoder on NXT motor
-		nxtDisplayTextLine(6, "stickAngle:%d", stickAngle);	// Brick sucker joystick
+		nxtDisplayTextLine(6, "stickAngle:%d", stickAngle);			// Brick sucker joystick
 		nxtDisplayTextLine(7, "btnBlockStop:%d", btnBlockStop);	// Conveyor joystick
 }
 /*
@@ -128,7 +128,7 @@ task main(){
   ClearTimer(T1);								// Reset the timer
 
 
-  waitForStart();   						// wait for start of tele-op phase
+  waitForStart();   								// wait for start of tele-op phase
 
   while (true){											// Loop forever
   	getJoystickSettings(joystick);	// Get the regular joystick information

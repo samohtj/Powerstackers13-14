@@ -1,14 +1,23 @@
+/*
+*	Include some necessary files
+*/
 #include "hitechnic-sensormux.h"
 #include "lego-light.h"
 #include "hitechnic-irseeker-v2.h"
 #include "hitechnic-touchmux.h"
 #include "hitechnic-gyro.h"
 
+/*
+*	Declare some sendor constants
+*/
 const tMUXSensor irLeft = msensor_S2_1;
 const tMUXSensor irRight = msensor_S2_2;
 const tMUXSensor lightSenseLeft 	= msensor_S2_3;
 const tMUXSensor lightSenseRight 	= msensor_S2_4;
 
+/*
+*	Variables to store the sensor values
+*/
 int rawLightLeft;
 int rawLightRight;
 int irStrengthLeft;
@@ -21,14 +30,17 @@ bool touchInput3;
 
 int dummy;
 
+/*
+*	Constantly update the variables with the sensor values
+*/
 task getSmux()
 {
-	LSsetActive(lightSenseLeft);
+	LSsetActive(lightSenseLeft);											// Turn the light sensors on to show that we're working
 	LSsetActive(lightSenseRight);
-	writeDebugStreamLine("Multiplexer setup ready");
+	writeDebugStreamLine("Multiplexer setup ready");	// Print some info
 
 	while (true){
-		rawLightLeft = LSvalRaw(lightSenseLeft);
+		rawLightLeft = LSvalRaw(lightSenseLeft);				// Set all the variables to the sensor readings
 		rawLightRight = LSvalRaw(lightSenseRight);
 
 		if(!HTIRS2readEnhanced(IRS, dummy, irStrengthLeft)){

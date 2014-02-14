@@ -17,17 +17,17 @@
 
 task main()
 {
-	eraseDisplay();
-	clearDebugStream();
-	nxtDisplayCenteredBigTextLine(0, "AUTO");
+	eraseDisplay();														// Clear the screen
+	clearDebugStream();												// Clear the debug stream
+	nxtDisplayCenteredBigTextLine(0, "AUTO");	// Print out a message saying we're ready
 	nxtDisplayCenteredBigTextLine(2, "READY");
-	nMotorEncoder[mDriveLeft] = 0;
+	nMotorEncoder[mDriveLeft] = 0;						// Set all the encoders to 0
 	nMotorEncoder[mDriveRight] = 0;
 	nMotorEncoder[mBsAngle] = 0;
-	waitForStart();
+	waitForStart();														// Wait for the green light
 	nxtDisplayCenteredBigTextLine(2, "RUNNING");
-	StartTask(getSmux);
-	StartTask(showDebugInfo);
+	StartTask(getSmux);												// Start getting sensor input
+	StartTask(showDebugInfo);									// Print out important info
 
 	suckerToDropPosition();	// Raise the block sucker to dropping position
 	goTicks(2125, 50);			// Move up to the baskets
