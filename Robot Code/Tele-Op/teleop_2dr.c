@@ -1,8 +1,7 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  none,     none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S3,     IRS_L,          sensorI2CCustom)
 #pragma config(Sensor, S4,     IRS_R,          sensorI2CCustom)
-#pragma config(Motor,  motorA,           ,             tmotorNXT, openLoop)
+#pragma config(Motor,  motorA,          mFlagRaise,    tmotorNXT, openLoop)
 #pragma config(Motor,  motorB,           ,             tmotorNXT, openLoop)
 #pragma config(Motor,  motorC,          mBlockStop,    tmotorNXT, openLoop, reversed)
 #pragma config(Motor,  mtr_S1_C1_1,     mDriveLeft,    tmotorTetrix, openLoop, encoder)
@@ -93,13 +92,14 @@ void initializeRobot()
  */
 void getCustomJoystickSettings(){
 	stickDriveLeft 	= joystick.joy1_y1;	// dr1 left joystick
-	stickDriveRight = joystick.joy1_y2;	//
-	btnConveyor		=	(joy2Btn(6) == 1);
-	stickAngle			= joystick.joy2_y1;
-	btnStraightDr		= (joy1Btn(3) == 1);
-	stickBlockStop	=	joystick.joy2_y2;
-	btnReverse			= (joy2Btn(8) == 1);
-	btnBlockStop		= (joy2Btn(3) == 1);
+	stickDriveRight = joystick.joy1_y2;	// dr1 right joystick
+	stickAngle			= joystick.joy2_y1;	// dr2 left joystick
+	stickBlockStop	=	joystick.joy2_y2;	// dr2 right joystick
+	btnStraightDr		= (joy1Btn(3) == 1);// dr1 red button
+	btnFlagClock		= (joy1Btn(5) == 1);// dr1 left shoulder
+	btnFlagCounter	= (joy1Btn(7) == 1);// dr1 left trigger
+	btnReverse			= (joy2Btn(8) == 1);// dr2 right trigger
+	btnConveyor			=	(joy2Btn(6) == 1);// dr2 right shoulder
 }
 
 /*
@@ -157,7 +157,7 @@ task main(){
 					driveMotorsTo(STICK_TO_MOTOR(stickDriveLeft));	// Move both motors at the same speed
 			}
 			else{
-				driveMotorsTo(0);
+				driveMotorsTo(0);	// Congratulations, you found the secret message
 			}
 
 		}
@@ -233,5 +233,16 @@ task main(){
 		}else{
 			motor[mBlockStop] = 0;							// Else, stop the motor
 		}
-  }
+
+		/*
+		* Flag raiser
+		*/
+		if(btnFlagClock){							// If the flag clockwise button is pressed
+			if(!btnFlagCounter)					// And the flag counterclockwise button is NOT pressed
+				motor[mFlagRaise] = 100;	// Flag to 100
+		}else if(btnFlagCounter)			// If the flag counterclockwise button is pressed
+			motor[mFlagRaise] = -100;		// Flag to -100
+		else													// If neither are pressed
+			motor[mFlagRaise] = 0;			// Flag to 0
+	}
 }
