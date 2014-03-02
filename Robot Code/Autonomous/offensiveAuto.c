@@ -1,9 +1,9 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  none,     none)
 #pragma config(Sensor, S2,     SMUX,           sensorI2CCustom)
 #pragma config(Sensor, S3,     sGyro,          sensorI2CHiTechnicGyro)
-#pragma config(Sensor, S4,     TMUX,           sensorAnalogInactive)
-#pragma config(Motor,  motorA,           ,             tmotorNXT, openLoop)
-#pragma config(Motor,  motorB,           ,             tmotorNXT, openLoop)
+#pragma config(Sensor, S4,     sLiftStop,      sensorTouch)
+#pragma config(Motor,  motorA,          mFlagRaise1,   tmotorNXT, openLoop)
+#pragma config(Motor,  motorB,          mFlagRaise2,   tmotorNXT, openLoop)
 #pragma config(Motor,  motorC,          mBlockStop,    tmotorNXT, openLoop, reversed)
 #pragma config(Motor,  mtr_S1_C1_1,     mDriveLeft,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     mDriveRight,   tmotorTetrix, openLoop, reversed, encoder)
@@ -13,78 +13,101 @@
 
 #include "JoystickDriver.c"
 #include "autonomous-includes/autonomous_tasks.c"
+#include "autonomous-includes/autoMenu.h"
 
-
+const int irThresh = 225;
+const long finalBasketDistance = inchesToTicks(61.5);
 
 void initializeRobot(){
-		touchInput1 = true;
-		touchInput2 = true;
-		touchInput3 = true;
+	doIr = true;
+	goAround = false;
+	startNear = false;
 }
 
 task main(){
 	StartTask(showDebugInfo);
 	nMotorEncoder[mDriveLeft] = 0;
-	long encoderHome = nMotorEncoder[mDriveLeft];
 	clearDebugStream();
 	StartTask(getSmux);
 
 	initializeRobot();
 //	waitForStart();
 
-	/**
-		WAIT
-	*/
-	//if(touchInput3){		// If the "wait" button is activated
-	//	wait10Msec(1000);
-	//}
+	// Is there a delay?
+	if(delay > 0){
+		writeDebugStreamLine("Wait detected");
+		wait10Msec(delay * 100);		// Wait the amount of time given by the delay
+		writeDebugStreamLine("Wait over");
+	}
 
-	/**
-		FIND IR / PLACE BLOCK
-	*/
-	//if(touchInput2){		// If the "far corner/near corner" button is activated
-	//	findIrRight(45, 25, 25);	// Find the IR signal using the left sensor
-	//	placeBlock(-1);						// Place the block in the basket
-	//}else{
-	//	findIrLeft(25, 25, 25);		// Find the IR signal using the right sensor
-	//	placeBlock(1);						// Place the block in the basket
-	//}
+	// Are we going to place the block?
+	int basketPosition = 0;
+	if(doIr){
+		writeDebugStreamLine("Going for IR");
+		// 1 wheel rot = 1350 ticks
+		// Move up to the first basket
+		goTicks(inchesToTicks(18.5), 100);
+		writeDebugStreamLine("At first basket");
+		// Loop four times
+		for(int i = 0; i < 4; i++){
+			// If the ir seeker value is over the threshold
+			writeDebugStreamLine("Basket#%d:IR Value = %d, need %d to stop", (i+1), (irStrengthLeft > irStrengthRight) ? irStrengthLeft : irStrengthRight, irThresh);
+			if(irStrengthLeft > irThresh || irStrengthRight > irThresh){
+				placeBlock(i);					// Place the block
+				basketPosition = i;		// Return the current basket position
+				writeDebugStreamLine("Placing block");
+				break;								// Break out of the loop
+			}
+			// If the ir seeker value is below the threshold
+			else{
+				if(i == 0){
+					goTicks((finalBasketDistance - inchesToTicks(33), 100);
+					writeDebugStreamLine("At second basket");
+				}
+				else if(i == 1){
+					goTicks((finalBasketDistance), 100);
+					writeDebugStreamLine("At third basket");
+				}
+				else if(i == 2){
+					goTicks(650, 100);
+					writeDebugStreamLine("At fourth basket");
+				}
+			}
+		}
 
-	/**
-		RETURN TO START POSITION
-	*/
-	//if(touchInput1){		// If we're going for the near side of the ramp
-	//	returnToSpot(1, encoderHome);	// Return to the original position before turning
-	//}
+		// Are we going around the far end?
+		if(goAround){
+			writeDebugStreamLine("Going to far end of ramp");
+		//	// Loop through and move forward until we're past the baskets
+		//	for(int i = 0; i < (3 - basketPosition); i++){
+		//		goTicks(1350, 100);
+		//	}
+		//	// Move to turning position
+		//	goTicks(1350, 100);
+		//}else{
+		//	// Loop through and move backward until we're past the baskets
+		//	for(int i = 0; i < basketPosition; i++){
+		//		goTicks(-1350, 100);
+		//	}
 
-	/**
-		TURN TOWARDS THE RAMP
-	*/
-	//if(!touchInput2){		// If we're starting from the near side
-	//	turnDegrees(90);
-	//}else{
-	//	turnDegrees(-90);
-	//}
+		//	// Move to turning position
+		//	goTicks(-1350, 100);
+		//}
 
-	/**
-		FIND WHITE LINE
-	*/
-	findWhiteLine(false);
+		//// Did we start near or far?
+		//if(startNear){
+		//	// Turn clockwise
+		//	turnDegrees(-90, 35);
+		//	goTicks(1350, 100);
+		//	turnDegrees(90, 35);
+		//}else{
+		//	// Turn counterclockwise
+		//	turnDegrees(90, 35);
+		//	goTicks(1350, 100);
+		//	turnDegrees(-90, 35);
+		//}
 
-	/**
-		TURN TO GO UP THE RAMP
-	*/
-	//if(!touchInput2){
-	//	turnDegrees(-90);
-	//}else{
-	//	turnDegrees(90);
-	//}
-
-	/**
-		GO UP THE RAMP
-	*/
-	//goFeet(2, 100);
-
-	writeDebugStreamLine("autoStrength = ", irStrengthRight);
-
-}
+		//// Go up the ramp
+		//goTicks(1350, 100);
+	}
+}}

@@ -43,14 +43,14 @@ task getSmux()
 		rawLightLeft = LSvalRaw(lightSenseLeft);				// Set all the variables to the sensor readings
 		rawLightRight = LSvalRaw(lightSenseRight);
 
-		if(!HTIRS2readEnhanced(IRS, dummy, irStrengthLeft)){
+		if(!HTIRS2readEnhanced(irLeft, dummy, irStrengthLeft)){
 			writeDebugStreamLine("Something's wrong");
 		}
-		//if(!HTIRS2readEnhanced(msensor_S2_2, dummy, irStrengthRight)){
-		//	writeDebugStreamLine("Something's wrong");
-		//}
+		if(!HTIRS2readEnhanced(irRight, dummy, irStrengthRight)){
+			writeDebugStreamLine("Something's wrong");
+		}
 
-		gyroVel = HTGYROreadRot(msensor_S2_1);
+		//gyroVel = HTGYROreadRot(msensor_S2_1);
 
 		//writeDebugStreamLine("IR Left:%d IR Right: %d", irStrengthLeft, irStrengthRight);
 

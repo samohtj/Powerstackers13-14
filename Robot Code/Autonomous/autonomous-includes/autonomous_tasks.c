@@ -91,6 +91,7 @@ void goFeet(float feet, int speed){
 */
 void turnDegrees(float degreesToTurn, int turnStrength){
 	float degreesSoFar = 0;													// Degrees turned thus far
+	int leftTurnStrength = turnStrength + 15;
 	int initialTurnReading = HTGYROreadRot(sGyro);	// Take an initial reading from the gyro
 	writeDebugStreamLine("TURNING\ninitial reading: %d", initialTurnReading);	// Print some info
 	writeDebugStreamLine("Target angle: %2.2f", degreesToTurn);
@@ -98,11 +99,11 @@ void turnDegrees(float degreesToTurn, int turnStrength){
 	* Decide to turn right or left
 	*/
 	if (degreesToTurn > 0){										// If the degree measure is positive
-		motor[mDriveLeft] = -1 * turnStrength;	// Turn left
+		motor[mDriveLeft] = -1 * leftTurnStrength;	// Turn left
 		motor[mDriveRight] = turnStrength;
 		writeDebugStreamLine("Decided to turn counterclockwise");
 		}else{																	// If the degree measure is negative
-		motor[mDriveLeft] = turnStrength;				// Turn right
+		motor[mDriveLeft] = leftTurnStrength;				// Turn right
 		motor[mDriveRight] = -1 * turnStrength;
 		writeDebugStreamLine("Decided to turn clockwise");
 	}
@@ -234,18 +235,8 @@ short findIrLeft(int fullStrength, int minStrength, int turnStrength)
 /*
 * Turn the robot and place the block in the crate
 */
-void placeBlock(int turnDirection){
-	const long liftEncoderValue	= 9;					// Number of motor rotations needed to lift the BS all the way up
-
-	turnDegrees(90 * turnDirection, 25);			// Turn the robot 90 degrees in the chosen direction
-	while (nMotorEncoder[mBsAngle] < (liftEncoderValue)){	// While the lift motor is below the upper value
-		motor[mBsAngle] = 100;															// Run the motor
-	}
-	motor[mBsAngle] = 0;						// Stop the motor
-	motor[mBsConveyor] = 100;				// Run the conveyor, drop the block
-	wait10Msec(200);								// Let some time pass
-	motor[mBsConveyor] = 0;					// Stop the motor
-	turnDegrees(90 * (-1 * turnDirection), 25);	// Turn 90 degrees back in the opposite direcgtion as before
+void placeBlock(int basketNum){
+	// This is where the block placing code will go
 }
 
 /*
@@ -285,12 +276,12 @@ void returnToSpot(long distanceFromHome, long home){
 *	NOT IMPLEMENTED
 *	Use the gyro sensor to keep the robot moving in a straight line, no matter what
 */
-task gyroAlign(){
-	while(true){
-		writeDebugStreamLine("hi");	// Print some info
-		// As soon as we figure out how to get this to work, we'll let you know ;)
-	}
-}
+//task gyroAlign(){
+//	while(true){
+//		writeDebugStreamLine("hi");	// Print some info
+//		// As soon as we figure out how to get this to work, we'll let you know ;)
+//	}
+//}
 
 /*
 *	Raise the
@@ -336,4 +327,8 @@ int getFieldSide(){
 		}
 	}while(!gotInput);
 	return side;
+}
+
+long inchesToTicks(float inches){
+	return (long) inches / 0.01185;
 }

@@ -17,6 +17,8 @@
 task main()
 {
 	StartTask(showDebugInfo);
-	goFeet(1.0, 10);
-	wait10Msec(300);
+	StartTask(getSmux);
+	while(true){
+		//hi
+	}
 }
