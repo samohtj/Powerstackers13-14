@@ -21,16 +21,20 @@ void initializeRobot(){
 	doIr = true;
 	goAround = false;
 	startNear = false;
+	rampOtherSide = false;
+	allMotorsTo(0);
 }
 
 task main(){
-	StartTask(showDebugInfo);
+
 	nMotorEncoder[mDriveLeft] = 0;
 	clearDebugStream();
-	StartTask(getSmux);
-
+	StartTask(runMenuOffensive);
 	initializeRobot();
-//	waitForStart();
+
+	waitForStart();
+	StartTask(showDebugInfo);
+	StartTask(getSmux);
 
 	// Is there a delay?
 	if(delay > 0){
@@ -60,9 +64,9 @@ task main(){
 			}
 			// If the ir seeker value is below the threshold
 			else{
-				long blockDistances[3] = {inchesToTicks(10), inchesToTicks(23), inchesToTicks(10)};
-				// Move forward the distance corresponding to the current basket
-				goTicks(blockDistances[i-1], 50);
+				//long blockDistances[3] = {inchesToTicks(10), inchesToTicks(23), inchesToTicks(10)};
+				//// Move forward the distance corresponding to the current basket
+				//goTicks(blockDistances[i-1], 50);
 
 				// Move forward the amount of ticks needed to reach the next programmed value
 				long blockDistancesCumulative[3] = {startEncoderPos + inchesToTicks(10), startEncoderPos + inchesToTicks(33), startEncoderPos + inchesToTicks(43)};
@@ -74,36 +78,34 @@ task main(){
 		// Are we going around the far end?
 		if(goAround){
 			writeDebugStreamLine("Going to far end of ramp");
-		//	// Loop through and move forward until we're past the baskets
-		//	for(int i = 0; i < (3 - basketPosition); i++){
-		//		goTicks(1350, 100);
-		//	}
-		//	// Move to turning position
-		//	goTicks(1350, 100);
-		//}else{
-		//	// Loop through and move backward until we're past the baskets
-		//	for(int i = 0; i < basketPosition; i++){
-		//		goTicks(-1350, 100);
-		//	}
+			// Figure out how far we have to go to get to the far end of the ramp, and go that distance
+			long farEncoderPos = startEncoderPos + inchesToTicks(65);
+			goTicks(farEncoderPos - nMotorEncoder[mDriveRight], 100);
+		}else{
+			writeDebugStreamLine("Going to near end of ramp");
+			// Figure out how far back we have to go to get to the near end of the ramp, and go that distance
+			long nearEncoderPos = startEncoderPos - inchesToTicks(7);
+			goTicks(-1 * (nMotorEncoder[mDriveRight] - nearEncoderPos), 100);
+		}
 
-		//	// Move to turning position
-		//	goTicks(-1350, 100);
-		//}
+		// Did we start near or far?
+		if(startNear){
+			// Turn clockwise
+			turnDegrees(-90, 35);
+			if(rampOtherSide)
+				goTicks(inchesToTicks(36), 100);
+			findWhiteLine();
+			turnDegrees(90, 35);
+		}else{
+			// Turn counterclockwise
+			turnDegrees(90, 35);
+			if(rampOtherSide)
+				goTicks(inchesToTicks(36), 100);
+			findWhiteLine();
+			turnDegrees(-90, 35);
+		}
 
-		//// Did we start near or far?
-		//if(startNear){
-		//	// Turn clockwise
-		//	turnDegrees(-90, 35);
-		//	goTicks(1350, 100);
-		//	turnDegrees(90, 35);
-		//}else{
-		//	// Turn counterclockwise
-		//	turnDegrees(90, 35);
-		//	goTicks(1350, 100);
-		//	turnDegrees(-90, 35);
-		//}
-
-		//// Go up the ramp
-		//goTicks(1350, 100);
+		// Go up the ramp
+		goTicks(1350, 100);
 	}
-}}
+}
