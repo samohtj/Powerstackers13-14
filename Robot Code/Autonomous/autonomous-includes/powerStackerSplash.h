@@ -72,6 +72,6 @@ void doPowerstackerSplash(){
 	wait10Msec(300);
 }
 
-task main(){
-	doPowerstackerSplash();
-}
+//task main(){
+//	doPowerstackerSplash();
+//}

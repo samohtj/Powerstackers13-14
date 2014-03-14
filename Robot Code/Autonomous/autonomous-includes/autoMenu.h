@@ -1,3 +1,9 @@
+/////////////////////////////////////////////////////////////
+//	AUTONOMOUS PROGRAM STRATEGY CHOOSER
+//	ORIGINAL CODE BY FTC TEAM# 3785, THE BESTIE BOTS
+//	https://github.com/hprobotics/ftcresources/blob/master/AutonomousChooser/menu_helper.h
+//	MODIFIED BY FTC TEAM# 5029, THE POWERSTACKERS
+////////////////////////////////////////////////////////////
 /**
 *	Declare constants to identify the buttons
 */
@@ -17,6 +23,13 @@ void switchInt(int* in, TButtons activeButton){
 		*in = *in - 1;
 }
 
+void switchFloat(float* in, TButtons activeButton){
+	if(activeButton == NEXT_BUTTON)
+		*in = *in + 0.1;
+	if(activeButton == PREV_BUTTON)
+		*in = *in - 0.1;
+}
+
 /* OFFENSIVE OPTIONS */
 bool startNear = false;
 bool doIr = false;
@@ -27,6 +40,8 @@ bool rampOtherSide = false;
 bool blockRamp = false;
 
 int delay = 0;
+// Delay will not go over this value (in seconds)
+const int maxDelay = 10;
 
 task runMenuOffensive()
 {
@@ -40,8 +55,8 @@ task runMenuOffensive()
 	while (true){
 		if(delay < 0)
 			delay = 0;
-		else if(delay > 10)
-			delay = 10;
+		else if(delay > maxDelay)
+			delay = maxDelay;
 
 		nxtDisplayString(0, "Near:     %s", startNear ? "yes":"no ");
 		nxtDisplayString(1, "Do Ir:    %s", doIr ? "yes":"no ");

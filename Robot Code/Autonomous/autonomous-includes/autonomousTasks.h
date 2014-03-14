@@ -4,6 +4,12 @@
 #include "multiplexer.h"
 
 /*
+*	Global Variables
+*/
+const int lightThreshold = 144;
+const int irThresh = 225;
+
+/*
 * Set all motors to the input value
 */
 void allMotorsTo(int i){
@@ -109,10 +115,52 @@ task showDebugInfo(){
 }
 
 /*
+*	Operate the flippers
+*/
+const short blockDropLeftStart = 0;
+const short blockDropRightStart = 245;
+
+const short blockDropLeftIdle = 128;
+const short blockDropRightIdle = 128;
+
+const short blockDropLeftDrop = 180;
+const short blockDropRightDrop = 32;
+
+const short conveyorTightStart = 150;
+const short conveyorTightActive = 170;
+
+void blockDrop(){
+	servo[rBlockDropLeft] = blockDropLeftDrop;
+	servo[rBlockDropRight] = blockDropRightDrop;
+}
+
+void blockRetract(){
+	servo[rBlockDropLeft] = blockDropLeftStart;
+	servo[rBlockDropRight] = blockDropRightStart;
+}
+
+void blockIdle(){
+	servo[rBlockDropLeft] = blockDropLeftIdle;
+	servo[rBlockDropRight] = blockDropRightIdle;
+}
+
+/*
 * Turn the robot and place the block in the crate
 */
-void placeBlock(int basketNum){
-	// This is where the block placing code will go
+void placeBlock(){
+	int servoDropPos[2] = {45, 135};
+	int servoRestPos[2] = {0, 180};
+
+	// Move the robot so that the droppers are lined up with the basket
+	goTicks(inchesToTicks(6), 50);
+
+	// Extend the servos and drop the blocks
+	servo[rBlockDropLeft] = servoDropPos[0];
+	servo[rBlockDropRight] = servoDropPos[1];
+
+	// Put the servos into the rest position
+	servo[rBlockDropLeft] = servoRestPos[0];
+	servo[rBlockDropRight] = servoRestPos[1];
 }
 
 /*
@@ -121,7 +169,6 @@ void placeBlock(int basketNum){
 void findWhiteLine(){
 	bool foundLineLeft = false;
 	bool foundLineRight = false;
-	const int lightThreshold = 144;
 
 	while(!foundLineLeft && !foundLineRight){
 		if(!foundLineLeft)
@@ -139,6 +186,19 @@ void findWhiteLine(){
 		if(lightSenseRight > lightThreshold)
 			foundLineRight = true;
 	}
+}
+
+/*
+*	Initialize the robot before the start of the autonomous
+*/
+void initializeRobot(){
+
+	allMotorsTo(0);
+	nMotorEncoder[mDriveLeft] = 0;
+	servo[rBlockDropLeft] = blockDropLeftStart;
+	//servo[rBlockDropRight] = 90;
+//	servo[rConveyorTight] = 90;
+	clearDebugStream();
 }
 
 ////////////
