@@ -26,16 +26,12 @@
 
 task main(){
 
-	doIr = true;
-	goAround = false;
-	startNear = false;
-	rampOtherSide = false;
-
-	doPowerstackerSplash();
+	//doPowerstackerSplash();
 	StartTask(runMenuOffensive);
 	initializeRobot();
 
 	waitForStart();
+	printMenuChoices();
 	StartTask(showDebugInfo);
 	StartTask(getSmux);
 
@@ -47,32 +43,14 @@ task main(){
 	}
 
 	// Are we going to place the block?
-	int basketPosition = 0;
+	//int basketPosition = 0;
 	if(doIr){
-		writeDebugStreamLine("Going for IR");
-		// Move up to the first basket
-		goTicks(inchesToTicks(3.5), 100);
-		writeDebugStreamLine("At first basket");
-		// Record the encoder value at the first basket
-		long startEncoderPos = nMotorEncoder[mDriveRight];
-		// Loop four times
-		for(int i = 1; i <= 4; i++){
-			// If the ir seeker value is over the threshold
-			writeDebugStreamLine("Basket#%d:IR Value = %d, need %d to stop", i, (irStrengthLeft > irStrengthRight) ? irStrengthLeft : irStrengthRight, irThresh);
-			if(irStrengthLeft > irThresh || irStrengthRight > irThresh){
-				placeBlock();					// Place the block
-				basketPosition = i;		// Return the current basket position
-				writeDebugStreamLine("Placing block");
-				break;								// Break out of the loop
-			}
-			// If the ir seeker value is below the threshold
-			else{
-				// Move forward the amount of ticks needed to reach the next programmed value
-				long blockDistancesCumulative[3] = {startEncoderPos + inchesToTicks(10), startEncoderPos + inchesToTicks(33), startEncoderPos + inchesToTicks(43)};
-				// Go destination minus current ticks
-				goTicks(blockDistancesCumulative[i-1] - nMotorEncoder[mDriveRight], 100);
-			}
-		}
+		// Record the starting encoder position
+		startEncoderPos = nMotorEncoder[mDriveRight];
+
+		// Find the IR basket
+		findIrContinuous();
+		//findIrIncremental();
 
 		// Are we going around the far end?
 		if(goAround){
@@ -105,6 +83,8 @@ task main(){
 		}
 
 		// Go up the ramp
-		goTicks(1350, 100);
+		goTicks(inchesToTicks(36), 100);
 	}
+	else
+		writeDebugStreamLine("Did not do IR. You really should have.");
 }

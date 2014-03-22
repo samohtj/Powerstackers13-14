@@ -8,6 +8,7 @@
 */
 const int lightThreshold = 144;
 const int irThresh = 225;
+long startEncoderPos = 0;
 
 /*
 * Set all motors to the input value
@@ -32,27 +33,38 @@ void driveMotorsTo(int i){
 /*
 * Convert a distance in inches to a distance in encoder ticks
 */
-long inchesToTicks(float feet){
-	long ticks =  (long) feet * (12000 / PI);
+long inchesToTicks(float inches){
+	long ticks =  (long) inches * (1350 / (4 * PI));
 	return  ticks;
+}
+
+float ticksToInches(long ticks){
+	float inches = (float) ticks / (1350 / (4 * PI));
+	return inches;
 }
 
 /*
 *	Move forward until the motor encoder reaches a certain value
 */
 void goTicks(long ticks, int speed){
+	ClearTimer(T1);
 	long target = nMotorEncoder[mDriveRight] + ticks;						// Target distance
-	writeDebugStreamLine("MOVING TICKS\ntarget: %5.2f", target);// Print some info
-	int leftMotorSpeed = speed + 15;														// Compensate for the hardware issues
+	writeDebugStreamLine("-- MOVING TICKS --\ntarget: %5.2f, current:%5.2f (%d inches) (speed: %d)", target, nMotorEncoder[mDriveRight], ticksToInches(ticks), speed);// Print some info
+	//int leftMotorSpeed = speed + 15;														// Compensate for the hardware issues
+	float leftMotorRatio = (float) 80 / 100;
 	if(ticks > 0){																	// If the distance is negative...
 		while(nMotorEncoder[mDriveRight] < target){		// While the encoder value is less than the target
-			motor[mDriveRight] = speed;									// Move backward
-			motor[mDriveLeft] = leftMotorSpeed;
+			//if(time100[T1] % 10 == 0)
+				//writeDebugStreamLine("current: %5.2f", nMotorEncoder[mDriveRight]);
+			motor[mDriveRight] = (int) speed * leftMotorRatio;									// Move backward
+			motor[mDriveLeft] = speed;
+
 		}
 	}else{																					// If the distance is positive...
 		while(nMotorEncoder[mDriveRight] > target){		// While the encoder value is less than the target
-			motor[mDriveRight] = -1 * speed;						// Move forward
-			motor[mDriveLeft] = -1 * leftMotorSpeed;
+			writeDebugStreamLine("current: %5.2f", nMotorEncoder[mDriveRight]);
+			motor[mDriveRight] = (float) -1 * (speed * leftMotorRatio);						// Move forward
+			motor[mDriveLeft] = -1 * speed;
 		}
 	}
 	writeDebugStreamLine("final:  %5.2f", nMotorEncoder[mDriveRight]);	// Print some info
@@ -66,8 +78,7 @@ void turnDegrees(float degreesToTurn, int turnStrength){
 	float degreesSoFar = 0;													// Degrees turned thus far
 	int leftTurnStrength = turnStrength + 15;
 	int initialTurnReading = HTGYROreadRot(sGyro);	// Take an initial reading from the gyro
-	writeDebugStreamLine("TURNING\ninitial reading: %d", initialTurnReading);	// Print some info
-	writeDebugStreamLine("Target angle: %2.2f", degreesToTurn);
+	writeDebugStreamLine("-- TURNING --\ninitial reading: %d\nTarget angle: %2.2f", initialTurnReading, degreesToTurn);	// Print some info
 	/*
 	* Decide to turn right or left
 	*/
@@ -148,19 +159,24 @@ void blockIdle(){
 * Turn the robot and place the block in the crate
 */
 void placeBlock(){
-	int servoDropPos[2] = {45, 135};
-	int servoRestPos[2] = {0, 180};
-
+	writeDebugStreamLine("-- PLACING BLOCK --");
 	// Move the robot so that the droppers are lined up with the basket
-	goTicks(inchesToTicks(6), 50);
+	//long dist = 0;
+	//if(basketNum == 0 || basketNum == 1)
+	//	dist = inchesToTicks(8);
+	//if(basketNum == 2 || basketNum == 3)
+	//	dist = inchesToTicks(6);
+	//goTicks(inchesToTicks(8), 50);
 
 	// Extend the servos and drop the blocks
-	servo[rBlockDropLeft] = servoDropPos[0];
-	servo[rBlockDropRight] = servoDropPos[1];
+	servo[rBlockDropLeft] = blockDropLeftDrop;
+	servo[rBlockDropRight] = blockDropRightDrop;
+
+	wait10Msec(100);
 
 	// Put the servos into the rest position
-	servo[rBlockDropLeft] = servoRestPos[0];
-	servo[rBlockDropRight] = servoRestPos[1];
+	servo[rBlockDropLeft] = blockDropLeftIdle;
+	servo[rBlockDropRight] = blockDropRightIdle;
 }
 
 /*
@@ -170,7 +186,7 @@ void findWhiteLine(){
 	bool foundLineLeft = false;
 	bool foundLineRight = false;
 
-	while(!foundLineLeft && !foundLineRight){
+	while(!foundLineLeft || !foundLineRight){
 		if(!foundLineLeft)
 			motor[mDriveLeft] = 50;
 		else
@@ -196,36 +212,43 @@ void initializeRobot(){
 	allMotorsTo(0);
 	nMotorEncoder[mDriveLeft] = 0;
 	servo[rBlockDropLeft] = blockDropLeftStart;
-	//servo[rBlockDropRight] = 90;
-//	servo[rConveyorTight] = 90;
-	clearDebugStream();
+	servo[rBlockDropRight] = blockDropRightStart;
+	servo[rConveyorTight] = conveyorTightStart;
+	writeDebugStreamLine("\n\n -- NEW INSTANCE -- \n\n");
 }
 
-////////////
-//	These next two functions are in here for backwards compatibility only.
-//
-///////////
-/*
-*	Raise the sucker
-*/
-void suckerToDropPosition(){
-	const long topEncoderPos = 7500;													// Encoder position where we will stop
-	const long startEncoderPos = nMotorEncoder[mBsAngle];			// Starting encoder position
-	const long target = abs(startEncoderPos + topEncoderPos);	// Target encoder position
-	writeDebugStreamLine("Startingn encoder value: %d, going to %d", nMotorEncoder[mBsAngle], target);	// Print some info
-	while(nMotorEncoder[mBsAngle] < target){	// Loop until the encoder hits the target
-		motor[mBsAngle] = 100;									// BS motor to full power
-		writeDebugStreamLine("Lift encoder value: %d", nMotorEncoder[mBsAngle]);	// Print some info
+void findIrIncremental(){
+	long blockDistancesCumulative[3] = {startEncoderPos + inchesToTicks(20), startEncoderPos + inchesToTicks(43), startEncoderPos + inchesToTicks(53)};
+	goTicks(inchesToTicks(10), 25);
+	writeDebugStreamLine("At first basket, ready to start.\n");
+	//wait10Msec(100);
+	PlaySound(soundBeepBeep);
+	for(int i = 0; i <= 3; i++){
+		//if(i == 2){
+		//	placeBlock();
+		//	break;
+		//}
+		if(irStrengthLeft > irThresh || irStrengthRight > irThresh){
+			// InfraRed has been found
+			goTicks(inchesToTicks(6), 25);
+			placeBlock();
+			writeDebugStreamLine("Block placed, moving on.\n");
+			break;
+		}
+		else{
+			// InfraRed has not been found, go to next basket
+			goTicks(blockDistancesCumulative[i] - nMotorEncoder[mDriveRight], 25);
+			writeDebugStreamLine("Going to next basket");
+			//wait10Msec(100);
+		}
+
+		writeDebugStreamLine("\n-- BASKET #%d --\nCurrent Value: %d. Need %d to stop.", i+1, (irStrengthLeft > irStrengthRight)? irStrengthLeft:irStrengthRight, irThresh);
 	}
-	motor[mBsAngle] = 0;											// Stop the motor
-	writeDebugStreamLine("Done raising");			// Print some info
 }
 
-/*
-*	Drop the block
-*/
-void spitBlock(){
-	motor[mBsConveyor] = -100;	// Set conveyor motor to full reverse
-	wait10Msec(300);						// Wait three seconds
-	motor[mBsConveyor] = 0;			// Stop the motor
+void findIrContinuous(){
+	while(irStrengthLeft < irThresh || irStrengthRight > irThresh){
+		driveMotorsTo(25);
+	}
+	driveMotorsTo(0);
 }

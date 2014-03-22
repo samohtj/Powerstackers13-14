@@ -31,10 +31,10 @@ void switchFloat(float* in, TButtons activeButton){
 }
 
 /* OFFENSIVE OPTIONS */
-bool startNear = false;
-bool doIr = false;
-bool goAround = false;
-bool rampOtherSide = false;
+bool startNear = true;
+bool doIr = true;
+bool goAround = true;
+bool rampOtherSide = true;
 
 /* DEFENSIVE OPTIONS */
 bool blockRamp = false;
@@ -101,7 +101,7 @@ task runMenuOffensive()
 				switchBool(currVar, nNxtButtonPressed);
 			else if(currType == 'i')
 				switchInt(currVar, nNxtButtonPressed);
-
+			PlaySound(soundBlip);
 			ClearTimer(T1);
 			while(nNxtButtonPressed != kNoButton && time1[T1] <= 400){
 
@@ -125,13 +125,18 @@ task runMenuOffensive()
 				currVar = &startNear;
 				currType = 'b';
 			}
-
+			PlaySound(soundBlip);
 			ClearTimer(T1);
 			while(nNxtButtonPressed != kNoButton && time1[T1] <= 400){
-				writeDebugStreamLine("hi");
+				//writeDebugStreamLine("hi");
 			}
 		}
 	}
 
 
+}
+
+void printMenuChoices(){
+	writeDebugStreamLine("Start on near side: %s\nFind IR basket: %s\nGo around far end of ramp: %s\nGo to the other half of the ramp: %s\nDelay: %d",
+		(startNear)? "Yes":"No", (doIr)? "Yes":"No", (goAround)? "Yes":"No", (rampOtherSide)? "Yes":"No", delay);
 }
