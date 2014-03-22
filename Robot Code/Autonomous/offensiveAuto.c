@@ -26,65 +26,99 @@
 
 task main(){
 
-	//doPowerstackerSplash();
+	// Run the strategy selection menu
 	StartTask(runMenuOffensive);
+
+	// Initialize the robot's motors and servos
 	initializeRobot();
 
+	// Wait for the start of the match
 	waitForStart();
+
+	// Stop the menu, and print the results
+	StopTask(runMenuOffensive);
 	printMenuChoices();
+
+	// Start tasks
 	StartTask(showDebugInfo);
 	StartTask(getSmux);
+	startEncoderPos = nMotorEncoder[mDriveRight];
 
-	// Is there a delay?
+	// If the delay time is greater than zero:
 	if(delay > 0){
 		writeDebugStreamLine("Wait detected");
-		wait10Msec(delay * 100);		// Wait the amount of time given by the delay
+		// Wait the amount of time given by the delay
+		wait10Msec(delay * 100);
 		writeDebugStreamLine("Wait over");
 	}
 
-	// Are we going to place the block?
+	// If the user has chosen to place the IR block:
 	//int basketPosition = 0;
 	if(doIr){
-		// Record the starting encoder position
-		startEncoderPos = nMotorEncoder[mDriveRight];
-
 		// Find the IR basket
-		findIrContinuous();
-		//findIrIncremental();
+		findIrIncremental();
 
-		// Are we going around the far end?
+		// If we are going to go around the far end of the ramp
 		if(goAround){
 			writeDebugStreamLine("Going to far end of ramp");
+
 			// Figure out how far we have to go to get to the far end of the ramp, and go that distance
-			long farEncoderPos = startEncoderPos + inchesToTicks(65);
+			// (Starting position + 65 inches)
+			long farEncoderPos = startEncoderPos + inchesToTicks(72);
 			goTicks(farEncoderPos - nMotorEncoder[mDriveRight], 100);
-		}else{
+		}
+
+		// If we are going to go aroudn the near end of the ramp:
+		else{
 			writeDebugStreamLine("Going to near end of ramp");
+
 			// Figure out how far back we have to go to get to the near end of the ramp, and go that distance
-			long nearEncoderPos = startEncoderPos - inchesToTicks(7);
+			// (Starting positon + 3 inches)
+			long nearEncoderPos = startEncoderPos + inchesToTicks(3);
 			goTicks(-1 * (nMotorEncoder[mDriveRight] - nearEncoderPos), 100);
 		}
 
-		// Did we start near or far?
+		// If the robobt started on the near side:
+		// (Ramp to the robot's right)
 		if(startNear){
 			// Turn clockwise
-			turnDegrees(-90, 35);
+			turnDegrees(-90, turnSpeed);
+
+			// If we are going up the other alliance's half of the ramp:
 			if(rampOtherSide)
+				// Skip over the first white line
 				goTicks(inchesToTicks(36), 100);
+
+			// Locate the white line, and stop on it
 			findWhiteLine();
-			turnDegrees(90, 35);
-		}else{
+
+			// Turn towards the ramp
+			turnDegrees(90, turnSpeed);
+		}
+
+		// If the robot started on the far side:
+		// (Ramp to the robot's left)
+		else{
 			// Turn counterclockwise
-			turnDegrees(90, 35);
+			turnDegrees(90, turnSpeed);
+
+			// If we are going up the other alliance's half of the ramp:
 			if(rampOtherSide)
+				// Skip over the first white line
 				goTicks(inchesToTicks(36), 100);
+
+			// Locate the white line, and stop on it
 			findWhiteLine();
-			turnDegrees(-90, 35);
+
+			// Turn towards the ramp
+			turnDegrees(-90, turnSpeed);
 		}
 
 		// Go up the ramp
 		goTicks(inchesToTicks(36), 100);
 	}
+
+	// If the user has chosen not to place the IR block:
 	else
 		writeDebugStreamLine("Did not do IR. You really should have.");
 }

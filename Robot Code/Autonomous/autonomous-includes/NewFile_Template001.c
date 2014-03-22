@@ -20,57 +20,20 @@
 
 //#include "autonomousTasks.h"
 #include "JoystickDriver.c"
-
-const short blockDropLeftStart = 0;
-const short blockDropRightStart = 245;
-
-const short blockDropLeftIdle = 128;
-const short blockDropRightIdle = 128;
-
-const short blockDropLeftDrop = 180;
-const short blockDropRightDrop = 32;
-
-const short conveyorTightStart = 150;
-const short conveyorTightActive = 170;
-
-void blockDrop(){
-	servo[rBlockDropLeft] = blockDropLeftDrop;
-	servo[rBlockDropRight] = blockDropRightDrop;
-}
-
-void blockRetract(){
-	servo[rBlockDropLeft] = blockDropLeftStart;
-	servo[rBlockDropRight] = blockDropRightStart;
-}
-
-void blockIdle(){
-	servo[rBlockDropLeft] = blockDropLeftIdle;
-	servo[rBlockDropRight] = blockDropRightIdle;
-}
-
-void initializeRobot(){
-
-
-	nMotorEncoder[mDriveLeft] = 0;
-	blockRetract();
-	servo[rConveyorTight] = conveyorTightStart;
-	wait10Msec(10);
-	writeDebugStreamLine("%d %d %d",ServoValue[rBlockDropLeft], ServoValue[rBlockDropRight], ServoValue[rConveyorTight]);
-}
-
-
-
+#include "multiplexer.h"
+#include "autoMenu.h"
 
 task main()
 {
-	initializeRobot();
-	wait10Msec(100);
-	servo[rConveyorTight] = conveyorTightActive;
-	blockDrop();
-	wait10Msec(100);
-	blockRetract();
-	wait10Msec(100);
-	writeDebugStreamLine("done");
-
+	bDisplayDiagnostics = false;
+	eraseDisplay();
+	StartTask(getSmux);
+	waitForStart();
+	motor[mDriveLeft] = 25;
+	motor[mDriveRight] = 25;
+	while(true){
+		nxtDisplayTextLine(2, "lightLeft = %d", lightSenseLeft);
+		nxtDisplayTextLine(3, "lightRight = %d", lightSenseRight);
+	}
 
 }
