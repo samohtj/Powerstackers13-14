@@ -20,20 +20,24 @@
 
 //#include "autonomousTasks.h"
 #include "JoystickDriver.c"
-#include "multiplexer.h"
+#include "autonomousTasks.h"
 #include "autoMenu.h"
 
 task main()
 {
+	calibrateLightSensors();
 	bDisplayDiagnostics = false;
 	eraseDisplay();
 	StartTask(getSmux);
-	waitForStart();
-	motor[mDriveLeft] = 25;
-	motor[mDriveRight] = 25;
+	findWhiteLine();
+	turnDegrees(-80, 50);
+	writeDebugStreamLine("Done");
 	while(true){
-		nxtDisplayTextLine(2, "lightLeft = %d", lightSenseLeft);
-		nxtDisplayTextLine(3, "lightRight = %d", lightSenseRight);
+		getJoystickSettings(joystick);
+		nxtDisplayTextLine(2, "lightLeft = %d", rawLightLeft);
+		nxtDisplayTextLine(3, "lightRight = %d", rawLightRight);
+
+
 	}
 
 }

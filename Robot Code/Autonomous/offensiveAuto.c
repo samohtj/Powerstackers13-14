@@ -100,7 +100,7 @@ task main(){
 		// (Ramp to the robot's left)
 		else{
 			// Turn counterclockwise
-			turnDegrees(90, turnSpeed);
+			turnDegrees(80, turnSpeed);
 
 			// If we are going up the other alliance's half of the ramp:
 			if(rampOtherSide)
@@ -111,7 +111,7 @@ task main(){
 			findWhiteLine();
 
 			// Turn towards the ramp
-			turnDegrees(-90, turnSpeed);
+			turnDegrees(-80, turnSpeed);
 		}
 
 		// Go up the ramp

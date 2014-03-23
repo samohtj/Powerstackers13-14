@@ -32,8 +32,11 @@ task main()
 			if(nNxtButtonPressed == 2){
 				if(motorUsing == 0)
 					motor[mBsConveyor] = -100;
-				else if(motorUsing == 1 && SensorValue[armStop] != 1)
-					motor[mBsAngle] = -100;
+				else if(motorUsing == 1)
+					if(SensorValue[armStop] == 1)
+						motor[mBsAngle] = 0;
+					else
+						motor[mBsAngle] = -100;
 				else{
 					motor[mFlagRaise1] = -100;
 					motor[mFlagRaise2] = -100;

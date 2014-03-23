@@ -2,6 +2,7 @@
 #pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     SMUX,           sensorI2CCustom)
 #pragma config(Sensor, S3,     sGyro,          sensorI2CHiTechnicGyro)
+#pragma config(Sensor, S4,     sConvStop,      sensorTouch)
 #pragma config(Motor,  motorA,          mFlagRaise1,   tmotorNXT, openLoop)
 #pragma config(Motor,  motorB,          mFlagRaise2,   tmotorNXT, openLoop)
 #pragma config(Motor,  motorC,          mBlockStop,    tmotorNXT, openLoop, reversed)
@@ -10,8 +11,8 @@
 #pragma config(Motor,  mtr_S1_C2_1,     mBsConveyor,   tmotorTetrix, openLoop, reversed)
 #pragma config(Motor,  mtr_S1_C2_2,     mBsAngle,      tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Servo,  srvo_S1_C3_1,    rConveyorTight,       tServoStandard)
-#pragma config(Servo,  srvo_S1_C3_2,    rFlipLeft,            tServoStandard)
-#pragma config(Servo,  srvo_S1_C3_3,    rFlipRight,           tServoStandard)
+#pragma config(Servo,  srvo_S1_C3_2,    rBlockDropLeft,       tServoStandard)
+#pragma config(Servo,  srvo_S1_C3_3,    rBlockDropRight,      tServoStandard)
 #pragma config(Servo,  srvo_S1_C3_4,    servo4,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_5,    servo5,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_6,    servo6,               tServoNone)
@@ -21,7 +22,7 @@
 //
 //	TELE-OP CODE FOR FTC# 5029
 //	2013-2014 BLOCK PARTY
-//	UPDATED 3-17-14
+//	UPDATED 3-23-14
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -31,59 +32,48 @@
 #define STICK_TO_MOTOR(x)	((float)x * 0.78125)												// Convert the joystick's -128 - 127 value to a -99 - 100 value
 #define MODE_STRAIGHT true																						// Drive modes, straight or normal
 #define MODE_NORMAL false
-
-/*
- * Global variables
- */
-																																			// Analog joysticks:
+																																			// --GLOBAL VAIRABLES
+																																			// ANALOG JOYSTICKS
 short 	stickDriveLeft;																								// Left drive motor
 short 	stickDriveRight;																							// Right drive motor
 short		stickAngle;																										// Block sucker up/down
 short		stickBlockStop;																								// Block gate motor
 
-																																			// Single-bit buttons:
+																																			// SINGLE-BIT BUTTONS
 bool 		btnStraightDr;																								// Activate straight drive
 bool		btnConveyor;																									// Activate the conveyor (up)
 bool		btnReverse;																										// Activate the conveyor (down)
-bool		btnBlockStop;																									// Activate the block stopper (deprecated)
+bool		btnBlockStop;																									// Activate the block stopper
 bool		btnFlagClock;																									// Activate the flag raiser (clockwise)
 bool		btnFlagCounter;																								// Activate the flag raiser (counter-clockwise)
 bool		btnConveyorTight;																							// Activate the conveyor tensioner
 
-																																			// Flags:
+																																			// FLAGS
 bool		driveMode;																										// Drive mode set to straight or normal
 bool		brickBlocked = true;																					// Whether or not the brick blocker is activated
 bool		blockerMoving = false;																				// Whether or not the brick blocker is moving
 
-																																			// Constants:
+																																			// CONSTANTS
 const short		stickThreshold = 10;																		// Value that sticks must pass to be considered active
 const int			blockClosedPos = 90;																		// Closed position encoder value for the brick blocker
 const int			blockOpenPos = -5;																			// Open position encoder value for the brick blocker
 const int 		blockOpenThresh = -360;																	// Encoder value below which the brick blocker will not continue
 const int 		blockClosedThresh = 360;																// Encoder value above which the brick blocker will not continue
-const int			blockSpeed = 75;																				// Motor speed for the brick blocker
+const int			blockSpeed = 50;																				// Motor speed for the brick blocker
 
-/*
- * Set all motors to the input value
- */
+																																			// --SET ALL MOTORS TO INPUT VALUE
 void allMotorsTo(int i){
 		motor[mDriveLeft] 	= i;
 		motor[mDriveRight] 	= i;
 		motor[mBsAngle] 		= i;
 		motor[mBsConveyor] 	= i;
 }
-
-/*
- * Set all drive motors to the input value
- */
+																																			// --SET ALL DRIVE MOTORS TO INPUT VALUE
 void driveMotorsTo(int i){
 		motor[mDriveLeft] 	= i;
 		motor[mDriveRight] 	= i;
 }
-
-/*
- * Set all encoders to the input value (good for zeroing)
- */
+																																			// --SET ALL ENCODERS TO INPUT VALUE
 void allEncodersTo(int i){
 	nMotorEncoder[mBlockStop] = i;
 	nMotorEncoder[mBsAngle] = i;
@@ -92,24 +82,17 @@ void allEncodersTo(int i){
 	nMotorEncoder[mDriveRight] = i;
 	writeDebugStreamLine("Encoders initialized");
 }
-
-/*
- * Initialize robot positions
- */
+																																			// --INITIALIZE ROBOT
 void initializeRobot()
 {
 	allMotorsTo(0);
 	allEncodersTo(0);
-	servo[rFlipLeft] = 100;
-	servo[rFlipRight] = 100;
-	servo[rConveyorTight] = 100;
+	servo[rBlockDropleft] = 128;
+	servo[rBlockDropRight] = 128;
+	servo[rConveyorTight] = 150;
   return;
 }
-
-
-/*
- * Function to transfer normal joystick values to the custom variables
- */
+																																			// --GET CUSTOM JOYSTICK SETTINGS
 void getCustomJoystickSettings(){
 	stickDriveLeft 	= joystick.joy1_y1;																	// dr1 left joystick
 	stickDriveRight = joystick.joy1_y2;																	// dr1 right joystick
@@ -121,24 +104,19 @@ void getCustomJoystickSettings(){
 	btnReverse			= (joy2Btn(8) == 1);																// dr2 right trigger
 	btnConveyor			=	(joy2Btn(6) == 1);																// dr2 right shoulder
 	btnConveyorTight =(joy2Btn(7) == 1);																// dr2 left trigger
+	btnBlockStop 		= (joy2Btn(3) == 1);
 }
-
-/*
- * Print information to the screen
- */
+																																			// --PRINT INFO TO THE SCREEN
 void displayButtonValues(){
-	  nxtDisplayTextLine(0, "btnConv:%d",		btnConveyor);								// Left drive joystick
-  	nxtDisplayTextLine(1, "btnRev:%d",	btnReverse);									// Right drive joystick
+	  nxtDisplayTextLine(0, "btnBlockStop:%d",		btnBlockStop);				// Left drive joystick
+  	nxtDisplayTextLine(1, "blockStop enc: %d",	nMotorEncoder[mBlockStop]);// Right drive joystick
 		nxtDisplayTextLine(3, "stickBlSt:%d", stickBlockStop);						// Brick stopper button
 		nxtDisplayTextLine(4, "mtrBlock:%d", motor[mBlockStop]);
   	nxtDisplayTextLine(5, "blEnc:%d", nMotorEncoder[mBlockStop]);			// Encoder on NXT motor
 		nxtDisplayTextLine(6, "stickAngle:%d", stickAngle);								// Brick sucker joystick
 		nxtDisplayTextLine(7, "btnBlockStop:%d", btnBlockStop);						// Conveyor joystick
 }
-
-/*
- * Main task
- */
+																																			// --MAIN TASK
 task main(){
 																																			// Do some housekeeping:
 	bDisplayDiagnostics = false;																				// Turn off battery level display on the NXT screen
@@ -186,9 +164,9 @@ task main(){
 		}
 																																			// CONVEYOR
 		if(btnConveyor){																									// If the conveyor button is pressed:
-			motor[mBsConveyor] = 75;																				// Conveyor motor to 75
+			motor[mBsConveyor] = 100;																				// Conveyor motor to 75
 		}else if(btnReverse){																							// If the reverse conveyor button is pressed:
-			motor[mBsConveyor] = -75;																				// Conveyor motor to -75
+			motor[mBsConveyor] = -100;																				// Conveyor motor to -75
 		}else{																														// If NEITHER button is pressed:
 			motor[mBsConveyor] = 0;																					// Conveyor motor to 0
 		}
@@ -196,7 +174,12 @@ task main(){
 		if(abs(stickAngle) < stickThreshold){															// If the stick is NOT pushed past the threshold:
 			motor[mBsAngle] = 0;																						// Brick sucker motor to 0
 		}else{																														// If the stick is pushed past the threshold:
-			motor[mBsAngle] = ((stickAngle > 0)? 100 : -100);								// If the stick value is positive, motor to 100. If it is negative, motor to -100
+			if(stickAngle < 0 && SensorValue[sConvStop] == 1){							// If the stick is being pushed down and the stop sensor is activated:
+				motor[mBsAngle] = 0;																					// Turn off the motor
+				nMotorEncoder[mBsAngle] = 0;																	// Set the motor encoder back to 0
+			}
+			else																														// If the stick is activated and the stop sensor is not activated:
+				motor[mBsAngle] = ((stickAngle > 0)? 100 : -100);							// If the stick value is positive, motor to 100. If it is negative, motor to -100
 		}
 																																			// BLOCK GATE
 		if(abs(stickBlockStop) < stickThreshold){													// If the stick is NOT pushed past the threshold:
@@ -233,9 +216,17 @@ task main(){
 		}
 																																			// CONVEYOR TENSION
 		if(btnConveyorTight){																							// If the conveyor tension button is pressed:
-			servo[rConveyorTight] = 170;																		// Servo to active position
+			servo[rConveyorTight] = 190;																		// Servo to active position
 		}else{																														// If the conveyor tension button is NOT pressed:
-			servo[rConveyorTight] = 150;																		// Servo to retracted position
+			servo[rConveyorTight] = 170;																		// Servo to retracted position
+		}
+																																			// BLOCK FLIPPERS
+		if(nMotorEncoder[mBsAngle] > 5000){																// If the brick sucker is above a certain height:
+			servo[rBlockDropLeft] = 128;																		// Move the brick suckers out of the way
+			servo[rBlockDropRight] = 128;
+		}else{																														// If the brick sucker is below a certain height:
+			servo[rBlockDropLeft] = 32;																			// Retract the servos
+			servo[rBlockDropRight] = 200;
 		}
 	}
 }
