@@ -11,7 +11,7 @@
 
 #include "multiplexer.h"
 																																		// --GLOBAL VARIABLES
-const int lightThreshold = 470;																			// Light threshold (stop after this value)
+int lightThreshold = 470;																			// Light threshold (stop after this value)
 const int irThresh = 180;																						// Infra-red threshold (stop after this value)
 const int turnSpeed = 25;																						// Speed of motors while turning
 long startEncoderPos = 0;																						// Encoder position at the start of the match
@@ -190,7 +190,7 @@ void findWhiteLine(){
 	motor[mDriveRight] = 0;
 }
 																																		// --CALIBRATE THE LIGHT SENSORS FOR THE MATS
-calibrateLightSensors(){
+void calibrateLightSensors(){
 	int matReading = (int) (rawLightLeft + rawLightRight)	/ 2;				// Average the right and left sensor values
 	lightThreshold = matReading + 75;																	// Add 75 to the average
 	writeDebugStreamLine("Light level of mat: %d\nSet threshold to %d",// Print the mat light level and the threshold
@@ -208,7 +208,13 @@ void initializeRobot(){
 }
 																																		// --FIND THE IR BEACON WITH INCREMENTAL MOVEMENT
 void findIrIncremental(){
-																																		// Store the distance from the starting position to each basket:
+	if(irStrengthLeft > 600){
+		writeDebugStreamLine("////////////////////\n//\n// MULTIPLEXER BATTERY DEAD\n//\n////////////////////");
+		goTicks(inchesToTicks(3), 25);
+		placeBlock(0);
+		return;
+	}
+// Store the distance from the starting position to each basket:
 	long blockDistancesCumulative[3] = {startEncoderPos + inchesToTicks(20),
 		startEncoderPos + inchesToTicks(43),
 		startEncoderPos + inchesToTicks(53)};
@@ -221,7 +227,8 @@ void findIrIncremental(){
 
 		if(irStrengthLeft > irThresh || irStrengthRight > irThresh){		// If the signal to either IR seeker is above the threshold:
 			placeBlock(i);																								// Place the block in the basket (pass the bakset number)
-			writeDebugStreamLine("Block placed, moving on.\n");						// Print a "finished" message to the debug stream
+			writeDebugStreamLine("Block placed in basket number %d. Detected value: %d Threshold value: %d",
+			i+1, (irStrengthLeft > irStrengthRight)? irStrengthLeft : irStrengthRight, irThresh);						// Print a "finished" message to the debug stream
 			break;																												// Break out of the loop
 		}
 

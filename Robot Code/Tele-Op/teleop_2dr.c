@@ -112,7 +112,7 @@ void displayButtonValues(){
   	nxtDisplayTextLine(1, "blockStop enc: %d",	nMotorEncoder[mBlockStop]);// Right drive joystick
 		nxtDisplayTextLine(3, "stickBlSt:%d", stickBlockStop);						// Brick stopper button
 		nxtDisplayTextLine(4, "mtrBlock:%d", motor[mBlockStop]);
-  	nxtDisplayTextLine(5, "blEnc:%d", nMotorEncoder[mBlockStop]);			// Encoder on NXT motor
+  	nxtDisplayTextLine(5, "bsAngle:%d", nMotorEncoder[mBsAngle]);			// Encoder on NXT motor
 		nxtDisplayTextLine(6, "stickAngle:%d", stickAngle);								// Brick sucker joystick
 		nxtDisplayTextLine(7, "btnBlockStop:%d", btnBlockStop);						// Conveyor joystick
 }
@@ -216,12 +216,12 @@ task main(){
 		}
 																																			// CONVEYOR TENSION
 		if(btnConveyorTight){																							// If the conveyor tension button is pressed:
-			servo[rConveyorTight] = 190;																		// Servo to active position
+			servo[rConveyorTight] = 170;																		// Servo to active position
 		}else{																														// If the conveyor tension button is NOT pressed:
-			servo[rConveyorTight] = 170;																		// Servo to retracted position
+			servo[rConveyorTight] = 150;																		// Servo to retracted position
 		}
 																																			// BLOCK FLIPPERS
-		if(nMotorEncoder[mBsAngle] > 5000){																// If the brick sucker is above a certain height:
+		if(nMotorEncoder[mBsAngle] > 3000){																// If the brick sucker is above a certain height:
 			servo[rBlockDropLeft] = 128;																		// Move the brick suckers out of the way
 			servo[rBlockDropRight] = 128;
 		}else{																														// If the brick sucker is below a certain height:
