@@ -1,7 +1,6 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     SMUX,           sensorI2CCustom)
-#pragma config(Sensor, S3,     sGyro,          sensorI2CHiTechnicGyro)
+#pragma config(Sensor, S3,     sGyro,          sensorI2CCustom)
 #pragma config(Sensor, S4,     sLiftStop,      sensorTouch)
 #pragma config(Motor,  motorA,          mFlagRaise1,   tmotorNXT, openLoop)
 #pragma config(Motor,  motorB,          mFlagRaise2,   tmotorNXT, openLoop)
@@ -22,13 +21,15 @@
 #include "JoystickDriver.c"
 #include "autonomous-includes/autonomousTasks.h"
 #include "autonomous-includes/autoMenu.h"
-#include "autonomous-includes/powerStackerSplash.h"
+//#include "autonomous-includes/powerStackerSplash.h"
 
 task main(){
 
 	// Run the strategy selection menu
 	StartTask(runMenuOffensive);
-
+	StartTask(getSmux);
+	PlaySound(soundBeepBeep);
+	wait10Msec(200);
 	// Initialize the robot's motors and servos
 	initializeRobot();
 
@@ -41,7 +42,7 @@ task main(){
 
 	// Start tasks
 	StartTask(showDebugInfo);
-	StartTask(getSmux);
+
 	startEncoderPos = nMotorEncoder[mDriveRight];
 
 	// If the delay time is greater than zero:
@@ -51,6 +52,11 @@ task main(){
 		wait10Msec(delay * 100);
 		writeDebugStreamLine("Wait over");
 	}
+
+	long targetArmPos = nMotorEncoder[mBsAngle] + 300;
+	while(nMotorEncoder[mBsAngle] < targetArmPos)
+		motor[mBsAngle] = 100;
+	motor[mBsAngle] = 0;
 
 	// If the user has chosen to place the IR block:
 	//int basketPosition = 0;
@@ -64,7 +70,7 @@ task main(){
 
 			// Figure out how far we have to go to get to the far end of the ramp, and go that distance
 			// (Starting position + 65 inches)
-			long farEncoderPos = startEncoderPos + inchesToTicks(72);
+			long farEncoderPos = startEncoderPos + inchesToTicks(68);
 			goTicks(farEncoderPos - nMotorEncoder[mDriveRight], 100);
 		}
 
@@ -74,7 +80,11 @@ task main(){
 
 			// Figure out how far back we have to go to get to the near end of the ramp, and go that distance
 			// (Starting positon + 3 inches)
-			long nearEncoderPos = startEncoderPos + inchesToTicks(3);
+			long nearEncoderPos;
+			if(startNear)
+				nearEncoderPos = startEncoderPos + inchesToTicks(2);
+			else
+				nearEncoderPos = startEncoderPos + inchesToTicks(12);
 			goTicks(-1 * (nMotorEncoder[mDriveRight] - nearEncoderPos), 100);
 		}
 
@@ -92,15 +102,26 @@ task main(){
 			// Locate the white line, and stop on it
 			findWhiteLine();
 
+			if(!rampOtherSide)
+				goTicks(inchesToTicks(6), 50);
+			else
+				goTicks(inchesToTicks(-6), 50);
+
 			// Turn towards the ramp
-			turnDegrees(90, turnSpeed);
+			if(goAround)
+				turnDegrees(50, turnSpeed);
+			else
+				turnDegrees(-80, turnSpeed);
 		}
 
 		// If the robot started on the far side:
 		// (Ramp to the robot's left)
 		else{
 			// Turn counterclockwise
-			turnDegrees(80, turnSpeed);
+			if(goAround)
+				turnDegrees(70, turnSpeed);
+			else
+				turnDegrees(80, turnSpeed);
 
 			// If we are going up the other alliance's half of the ramp:
 			if(rampOtherSide)
@@ -110,12 +131,21 @@ task main(){
 			// Locate the white line, and stop on it
 			findWhiteLine();
 
+			if(!rampOtherSide)
+				goTicks(inchesToTicks(6), 50);
+			else
+				goTicks(inchesToTicks(-6), 50);
+
 			// Turn towards the ramp
-			turnDegrees(-80, turnSpeed);
+			if(goAround)
+				turnDegrees(-60, turnSpeed);
+			else
+				turnDegrees(60, turnSpeed);
 		}
 
 		// Go up the ramp
-		goTicks(inchesToTicks(36), 100);
+		goTicks(inchesToTicks(-36), 100);
+		turnDegrees(90, 50);
 	}
 
 	// If the user has chosen not to place the IR block:

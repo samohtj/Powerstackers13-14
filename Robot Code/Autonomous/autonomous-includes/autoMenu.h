@@ -4,50 +4,39 @@
 //	https://github.com/hprobotics/ftcresources/blob/master/AutonomousChooser/menu_helper.h
 //	MODIFIED BY FTC TEAM# 5029, THE POWERSTACKERS
 ////////////////////////////////////////////////////////////
+#include "JoystickDriver.c"
 
 TButtons NEXT_BUTTON = kRightButton;																	// Create constants to make it easier to use the buttons
 TButtons PREV_BUTTON = kLeftButton;
 TButtons DOWN_BUTTON = kEnterButton;
-
-/*
-*	Switch a boolean to the opposite value
-*/
+																																			// -- SWITCH BOOLEAN TO OPPOSITE VALUE
 void switchBool(bool* in, TButtons activeButton){
 	if(activeButton == NEXT_BUTTON || activeButton == PREV_BUTTON)			// If the active button is the left or right button:
 		*in = !*in;																												// Toggle the input
 }
-
-/*
-*	Increment or decrement an integer by 1
-*/
+																																			// -- INCREMENT OR DECREMENT AN INTEGER BY 1
 void switchInt(int* in, TButtons activeButton){
 	if(activeButton == NEXT_BUTTON)																			// If the active button is the right arrow button:
 		*in = *in + 1;																										// Add 1 to the value
 	if(activeButton == PREV_BUTTON)																			// If the active button is the left arrow button:
 		*in = *in - 1;																										// Subtract 1 from the value
 }
-
-/*
-*	Increment or decrement a floating point number by 0.1
-*/
+																																			// -- INCREMENT OR DECREMENT A FLOAT BY .1
 void switchFloat(float* in, TButtons activeButton){
 	if(activeButton == NEXT_BUTTON)																			// If the active button is the right arrow button:
 		*in = *in + 0.1;																									// Add 0.1 to the value
 	if(activeButton == PREV_BUTTON)																			// If the active button is the left arrow button:
 		*in = *in - 0.1;																									// Subtract 0.1 from the value
 }
-																																			// Options for offensive play:
+																																			// -- GAME OPTION VARIABLES
 bool startNear = true;																								// Starting on the side closer to the drivers or the side farther
 bool doIr = true;																											// Placing the IR block or not
-bool goAround = true;																									// Go around the other side of the ramp, or come back to the side you started on
-bool rampOtherSide = true;																						// Go to our half of the ramp or the other alliance's half
-
-																																			// Options for defensive play:
-//bool blockRamp = false;																								// Blocking the ramp or not
-
+bool goAround = false;																								// Go around the other side of the ramp, or come back to the side you started on
+bool rampOtherSide = false;																						// Go to our half of the ramp or the other alliance's half
+//bool blockRamp = false;																							// Blocking the ramp or not
 int delay = 0;																												// Delay (in seconds) applied a the start of the match
 const int maxDelay = 10;																							// Maximum possible delay
-
+																																			// -- CONTINUOUSLY RUN AND UPDATE THE GAME OPTIONS
 task runMenuOffensive()
 {
 	bDisplayDiagnostics = false;																				// Turn off the diagnotics display
@@ -141,10 +130,7 @@ task runMenuOffensive()
 
 
 }
-
-/*
-*	Print the selected options to the debug stream
-*/
+																																			// -- PRINT THE GAME CHOICES TO THE DEBUG STREAM
 void printMenuChoices(){
 	writeDebugStreamLine("Start on near side: %s\nFind IR basket: %s\nGo around far end of ramp: %s\nGo to the other half of the ramp: %s\nDelay: %d",
 		(startNear)? "Yes":"No", (doIr)? "Yes":"No", (goAround)? "Yes":"No", (rampOtherSide)? "Yes":"No", delay);

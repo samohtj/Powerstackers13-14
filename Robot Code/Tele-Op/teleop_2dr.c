@@ -87,7 +87,7 @@ void initializeRobot()
 {
 	allMotorsTo(0);
 	allEncodersTo(0);
-	servo[rBlockDropleft] = 128;
+	servo[rBlockDropLeft] = 128;
 	servo[rBlockDropRight] = 128;
 	servo[rConveyorTight] = 150;
   return;
@@ -222,7 +222,7 @@ task main(){
 		}
 																																			// BLOCK FLIPPERS
 		if(nMotorEncoder[mBsAngle] > 3000){																// If the brick sucker is above a certain height:
-			servo[rBlockDropLeft] = 128;																		// Move the brick suckers out of the way
+			servo[rBlockDropLeft] = 118;																		// Move the brick suckers out of the way
 			servo[rBlockDropRight] = 128;
 		}else{																														// If the brick sucker is below a certain height:
 			servo[rBlockDropLeft] = 32;																			// Retract the servos

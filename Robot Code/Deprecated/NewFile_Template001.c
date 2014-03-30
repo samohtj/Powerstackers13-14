@@ -1,5 +1,4 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     SMUX,           sensorI2CCustom)
 #pragma config(Sensor, S3,     sGyro,          sensorI2CHiTechnicGyro)
 #pragma config(Sensor, S4,     sLiftStop,      sensorTouch)
@@ -25,19 +24,9 @@
 
 task main()
 {
-	calibrateLightSensors();
-	bDisplayDiagnostics = false;
-	eraseDisplay();
 	StartTask(getSmux);
-	findWhiteLine();
-	turnDegrees(-80, 50);
-	writeDebugStreamLine("Done");
-	while(true){
-		getJoystickSettings(joystick);
-		nxtDisplayTextLine(2, "lightLeft = %d", rawLightLeft);
-		nxtDisplayTextLine(3, "lightRight = %d", rawLightRight);
-
-
-	}
-
+	StartTask(showDebugInfo);
+	initializeRobot();
+	wait10Msec(200);
+	turnDegrees(80, 100);
 }

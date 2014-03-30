@@ -17,6 +17,7 @@ int rawLightRight;																										// Right IR seeker value
 int irStrengthLeft;																										// Left light sensor value
 int irStrengthRight;																									// Right light sensor value
 
+bool gettingIr = false;
 int dummy;																														// Dummy variable
 
 /*
@@ -26,17 +27,19 @@ task getSmux()
 {
 	LSsetActive(lightSenseLeft);																				// Turn the light sensors on to show that we're working
 	LSsetActive(lightSenseRight);
+	HTGYROstartCal(sGyro);
 	writeDebugStreamLine("Multiplexer setup ready");										// Print a "ready" message
 
 	while (true){
 		rawLightLeft = LSvalRaw(lightSenseLeft);													// Set all the variables to the sensor readings
 		rawLightRight = LSvalRaw(lightSenseRight);
-
-		if(!HTIRS2readEnhanced(irLeft, dummy, irStrengthLeft)){						// If the function returns false:
-			writeDebugStreamLine("Something's wrong with the IR");					// Let the operator know that something is wrong
-		}
-		if(!HTIRS2readEnhanced(irRight, dummy, irStrengthRight)){
-			writeDebugStreamLine("Something's wrong with the IR");
+		if(gettingIr){
+			if(!HTIRS2readEnhanced(irLeft, dummy, irStrengthLeft)){						// If the function returns false:
+				writeDebugStreamLine("Something's wrong with the IR");					// Let the operator know that something is wrong
+			}
+			if(!HTIRS2readEnhanced(irRight, dummy, irStrengthRight)){
+				writeDebugStreamLine("Something's wrong with the IR");
+			}
 		}
 	}
 }
