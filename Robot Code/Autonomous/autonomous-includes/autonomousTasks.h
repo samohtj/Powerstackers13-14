@@ -1,23 +1,32 @@
 /////////////////////////////////////
 //
 //	AUTONOMOUS PROGRAM FUNCTIONS AND SUBROUTINES
-//	CODE BY FTC TEAM# 5029
+//	CODE BY FTC TEAM# 5029, THE POWERSTACKERS
 //	github.com/samohtj/PowerstackersFTC-5029
 //	powerstackersftc.weebly.com
 //	UPDATED 3-22-2014
 //
 ////////////////////////////////////
 
-
+// Include the multiplexer driver, and the autonomous menu
 #include "multiplexer.h"
-#include "hitechnic-compass.h"
-																																		// --GLOBAL VARIABLES
-int lightThreshold = 470;																			// Light threshold (stop after this value)
-const int irThresh = 180;																						// Infra-red threshold (stop after this value)
-const int turnSpeed = 50;																						// Speed of motors while turning
-long startEncoderPos = 0;																						// Encoder position at the start of the match
+#include "autoMenu.h"
 
-																																		// --SET ALL MOTORS TO INPUT VALUE
+// Declare global variables:
+// lightThreshold: The robot looks for light levels above this value when finding the line
+// irThresh: The robot looks for light levels above this value when placing the block
+// turnSpeed: The speed of the motors when turning
+// startEncoderPosition: The value of the motor encoders at the start of the match
+int lightThreshold = 470;
+const int irThresh = 180;
+const int turnSpeed = 50;
+long startEncoderPos = 0;
+
+///////////////////////////////////////////////////////
+//
+//	Set all motors to the input parameter value
+//
+//////////////////////////////////////////////////////
 void allMotorsTo(int i){
 	motor[mDriveLeft] 	= i;
 	motor[mDriveRight] 	= i;
@@ -26,133 +35,208 @@ void allMotorsTo(int i){
 	motor[mFlagRaise1] 	= i;
 	motor[mFlagRaise2] 	= i;
 }
-																																		// --SET ALL DRIVE MOTORS TO INPUT VALUE
+
+/////////////////////////////////////////////////////////
+//
+//	Set all drive motors to the input parameter value
+//
+/////////////////////////////////////////////////////////
 void driveMotorsTo(int i){
 	motor[mDriveLeft] 	= i;
 	motor[mDriveRight] 	= i;
 }
-																																		// --CONVERT INCHES TO ENCODER TICKS
+
+////////////////////////////////////////////////////////////////
+//
+//	Convert a distance in inches to a distance in encoder ticks
+//
+////////////////////////////////////////////////////////////////
 long inchesToTicks(float inches){
 	return (long) inches * (1350 / (4 * PI));
 }
-																																		// --CONVERT ENCODER TICKS TO INCHES
+
+/////////////////////////////////////////////////////////////////////
+//
+//	Convert a distance in encoder ticks to a distance in inches
+//
+/////////////////////////////////////////////////////////////////////
 float ticksToInches(long ticks){
 	return (float) ticks / (1350 / (4 * PI));
 }
-																																		// -- MOVE FORWARD A CERTAIN DISTANCE IN ENCODER TICKS
+
+////////////////////////////////////////////////////////////////////
+//
+//	Move the robot a distance in encoder ticks
+//
+////////////////////////////////////////////////////////////////////
 void goTicks(long ticks, int speed){
-	long target = nMotorEncoder[mDriveRight] + ticks;									// Calculate the target encoder value (current distance + distance to go)
-																																		// Print some relevant information to the debug stream
-																																		// (Target encoder, current encoder, distance in inches, speed
+	// Calculate the target encoder value (current value + desired distance)
+	long target = nMotorEncoder[mDriveRight] + ticks;
+
+	// Print a message to the debug stream, saying how far we are going, and the target enccoder value
 	writeDebugStreamLine("-- MOVING TICKS --\ntarget: %5.2f, current:%5.2f (%d inches) (speed: %d)",
 		target, nMotorEncoder[mDriveRight], ticksToInches(ticks), speed);
-																																		// Create a modifier for the right wheel, since it spins faster.
-	float leftMotorRatio;
-	if(speed < 0)
-		leftMotorRatio = (float) 90.0 / 100.0;													// (The right wheel speed will be set lower to compensate for the difference)
-	else
-		leftMotorRatio = (float) 90.0 / 100.0;
-	writeDebugStreamLine("Left motor set to %d, right motor set to %d", speed, leftMotorRatio * speed);
 
-	if(ticks > 0){																										// If the distance is positive:
-		while(nMotorEncoder[mDriveRight] < target){											// While the current value is lower than the target:
-			motor[mDriveRight] = (int) speed * leftMotorRatio;						// Move forwards
+	// Create a variable to store the motor ratio
+	float rightMotorRatio;
+
+	// If we're going forwards, set the motor ratio to the forward motor ratio
+	// If we're going backwards, set the motor ratio to the backward ratio
+	// This is to ensure that the two sets of wheels turn at the same speed
+	if(speed < 0)
+		rightMotorRatio = (float) forwardMotorRatio / 100;
+	else
+		rightMotorRatio = (float) backwardMotorRatio / 100;
+	writeDebugStreamLine("Left motor set to %d, right motor set to %d", speed, rightMotorRatio * speed);
+
+	// If the distance is positive (we're moving forwards)
+	// While the current encoder value is less than the target, run the motors
+	if(ticks > 0){
+		while(nMotorEncoder[mDriveRight] < target){
+			motor[mDriveRight] = (int) speed * rightMotorRatio;
 			motor[mDriveLeft] = speed;
 		}
 	}
 
-	else{																															// If the distance is negative:
-		while(nMotorEncoder[mDriveRight] > target){											// While the current value is higher than the target:
-			motor[mDriveRight] = (float) -1 * (speed * leftMotorRatio);		// Move backwards
+	// If the distance is negative (we're going backwards)
+	// While the current encoder value is greater than the target, run the motors
+	else{
+		while(nMotorEncoder[mDriveRight] > target){
+			motor[mDriveRight] = (float) -1 * (speed * rightMotorRatio);
 			motor[mDriveLeft] = -1 * speed;
 		}
 	}
 
-	allMotorsTo(0);																										// Stop the motors
-	writeDebugStreamLine("final:  %5.2f", nMotorEncoder[mDriveRight]);// Print the final encoder value
+	// Stop all the motors
+	allMotorsTo(0);
+	writeDebugStreamLine("final:  %5.2f", nMotorEncoder[mDriveRight]);
 }
-																																		// --TURN TO A SPECIFIC DEGREE ANGLE
+
+///////////////////////////////////////////////////////////////
+//
+//	Turn the robot a distance in degrees
+//
+///////////////////////////////////////////////////////////////
 void turnDegrees(float degreesToTurn, int turnStrength){
-	// Entering 80 degrees will turn 90 degrees. Loss of about 10%
-	float degreesSoFar = 0;																						// Degrees turned thus far
-	int leftTurnStrength = turnStrength/* + 15*/;
-	int initialTurnReading = HTGYROreadRot(sGyro);										// Take an initial reading from the gyro
-																																		// Print some info
+
+	// Declare local variables:
+	// degreesSoFar: The number of degrees turned since we started the function
+	// initialTurnReading: The current reading from the gyroscope
+	float degreesSoFar = 0;
+	int initialTurnReading = HTGYROreadRot(sGyro);
+
+	// Print a message to the debug stream containing the target angle and the current reading
 	writeDebugStreamLine("-- TURNING --\ninitial reading: %d\nTarget angle: %2.2f",
 		initialTurnReading,
 		degreesToTurn);
 
-	if (degreesToTurn > 0){																						// If the degree measure is positive:
-		motor[mDriveLeft] = -1 * turnStrength;													// Turn counterclockwise
+		// If the degrees to turn is positive, spin the robot counterclockwise
+	if (degreesToTurn > 0){
+		motor[mDriveLeft] = -1 * turnStrength;
 		motor[mDriveRight] = turnStrength;
 		writeDebugStreamLine("Decided to turn counterclockwise");
-		}
+	}
 
-	else{																															// If the degree measure is negative:
-		motor[mDriveLeft] = turnStrength;																// Turn clockwise
+	// If the degrees to turn is negative, spin the robot clockwise
+	else{
+		motor[mDriveLeft] = turnStrength;
 		motor[mDriveRight] = -1 * turnStrength;
 		writeDebugStreamLine("Decided to turn clockwise");
 	}
 
-	while (abs(degreesSoFar) < abs(degreesToTurn)){										// While the degrees we've turned is less than the target:
-		wait10Msec(1);																									// Let some time pass
-																																		// Edit the current gyro reading
+	// While the absolute value of the degrees so far is less than the absolute value of the degrees to turn,
+	// Calculate the current degree value
+	while (abs(degreesSoFar) < abs(degreesToTurn)){
+		// Allow some time to pass
+		wait10Msec(1);
+
+		// Set the current reading to the sensor value minus the initial reading
 		int currentGyroReading = HTGYROreadRot(sGyro) - initialTurnReading;
 		nxtDisplayTextLine(7, "degreesSoFar: %d", degreesSoFar);
-		degreesSoFar = degreesSoFar + (currentGyroReading * 0.01); 			// Calculate the degrees turned so far (d=r*t)
-		//writeDebugStreamLine("Currentangle: %d", degreesSoFar);					// Print the current degree measure to the debug stream
+
+		// Add the degrees turned this iteration to the total degrees turned
+		degreesSoFar = degreesSoFar + (currentGyroReading * 0.01);
+
 	}
 
-	driveMotorsTo(0);																									// Stop the motors
-	writeDebugStreamLine("final angle: %2.2f", degreesSoFar);					// Print the final degree measure
+	// Stop the motors and print a message with the final degree measure
+	driveMotorsTo(0);
+	writeDebugStreamLine("final angle: %2.2f", degreesSoFar);
 }
-																																		// --CONTINUOUSLY RUN AND SHOW IMPORTANT INFORMATION
+
+//////////////////////////////////////////////////////////////////////
+//
+//	Show infomation on the NXT screen
+//
+//////////////////////////////////////////////////////////////////////
 task showDebugInfo(){
 	while(true){
-		nxtDisplayTextLine(0, "mtrL:%d", motor[mDriveLeft]);	// Left motor encoder
-		nxtDisplayTextLine(1, "mtrR:%d", motor[mDriveRight]);// Right motor encoder
-		nxtDisplayTextLine(2, "LiL:%d", rawLightLeft);									// Left light sensor
-		nxtDisplayTextLine(3, "LiR:%d", rawLightRight);									// Right light sensor
-		nxtDisplayTextLine(5, "irRL:%d,%d",															// IR seekers
+		nxtDisplayTextLine(0, "mtrL:%d", motor[mDriveLeft]);		// Left motor encoder
+		nxtDisplayTextLine(1, "mtrR:%d", motor[mDriveRight]);		// Right motor encoder
+		nxtDisplayTextLine(2, "LiL:%d", rawLightLeft);					// Left light sensor
+		nxtDisplayTextLine(3, "LiR:%d", rawLightRight);					// Right light sensor
+		nxtDisplayTextLine(5, "irRL:%d,%d",											// IR seekers
 			irStrengthLeft,
 			irStrengthRight);
-		nxtDisplayTextLine(6, "HighestIR:%d", irStrengthRight);					// Maximum IR signal
+		nxtDisplayTextLine(6, "HighestIR:%d", irStrengthRight);	// Maximum IR signal
 	}
 }
-																																		// --BRICK FLIPPER VARIABLES
-const short blockDropLeftStart = 0;																	// Starting (down) position
+
+// Variables for the brick flipper:
+// blockDropLeftStart/blockDropRightStart: "Starting" servo positions
+// blockDropLeftIdle/blockDropRightIdle: "Out of the way" servo positions
+// blockDropLeftDrop/blockDropRightDrop: "Dropping" servo positions
+// conveyorTightStart: Servo value for the conveyor tension servo
+const short blockDropLeftStart = 0;
 const short blockDropRightStart = 245;
-
-
-const short blockDropLeftIdle = 128;																// Idle (out of the way) position
+const short blockDropLeftIdle = 128;
 const short blockDropRightIdle = 128;
-
-const short blockDropLeftDrop = 180;																// Dropping (extended) position
+const short blockDropLeftDrop = 180;
 const short blockDropRightDrop = 32;
+const short conveyorTightStart = 150;
 
-const short conveyorTightStart = 150;																// Conveyor activated and deactivated (start) position
-//const short conveyorTightActive = 170;
-																																		// --PUT FLIPPERS IN "DROP" POSITION
+///////////////////////////////////////////////////////////////////////
+//
+//	Put the flippers in the "Dropping" position
+//
+///////////////////////////////////////////////////////////////////////
 void blockDrop(){
 	servo[rBlockDropLeft] = blockDropLeftDrop;
 	servo[rBlockDropRight] = blockDropRightDrop;
 }
-																																		// --PUT FLIPPERS IN "RETRACTED" POSITION
+
+////////////////////////////////////////////////////////////////////////
+//
+//	Put the flippers in the "Starting" position
+//
+///////////////////////////////////////////////////////////////////////
 void blockRetract(){
 	servo[rBlockDropLeft] = blockDropLeftStart;
 	servo[rBlockDropRight] = blockDropRightStart;
 }
-																																		// --PUT FLIPPERS IN "IDLE" POSITION
+
+///////////////////////////////////////////////////////////////////////
+//
+//	Put the flippers in the "Out of the way" position
+//
+///////////////////////////////////////////////////////////////////////
 void blockIdle(){
 	servo[rBlockDropLeft] = blockDropLeftIdle;
 	servo[rBlockDropRight] = blockDropRightIdle;
 }
-																																		// --PUT THE BLOCK IN THE BASKET
+
+////////////////////////////////////////////////////////////////////////
+//
+//	Put the block into the basket
+//	"It puts the block into the basket, or it gets the hose again."
+//
+///////////////////////////////////////////////////////////////////////
 void placeBlock(int basketPos){
 	writeDebugStreamLine("-- PLACING BLOCK --");
 
-	if(basketPos == 0 || basketPos == 1){															// If we are at the first or second baskets:
-		goTicks(inchesToTicks(8), 25);																	// Adjust robot position
+	// Adjust the robot position based on which basket we're at
+	if(basketPos == 0 || basketPos == 1){
+		goTicks(inchesToTicks(8), 25);
 		writeDebugStreamLine("Moved up 8 inches, first or second basket");
 	}
 	if(basketPos == 2 || basketPos == 3){
@@ -160,147 +244,167 @@ void placeBlock(int basketPos){
 		writeDebugStreamLine("Moved up 6 inches, third or fourth basket");
 	}
 
-	servo[rBlockDropLeft] = blockDropLeftDrop;												// Extend the servos and drop the blocks
-	servo[rBlockDropRight] = blockDropRightDrop;
-
-	wait10Msec(100);																									// Give the servos time to extend
-
-	servo[rBlockDropLeft] = blockDropLeftStart;												// Put the servos into the rest position
-	servo[rBlockDropRight] = blockDropRightStart;
+	// Extend the servos, give them time to move, and then retract them
+	blockDrop();
+	wait10Msec(100);
+	blockRetract();
 }
 
-																																			// --CALIBRATE THE LIGHT SENSORS FOR THE MATS
+////////////////////////////////////////////////////////////////////////
+//
+//	Calibrate the light sensors for the mats
+//
+////////////////////////////////////////////////////////////////////////
 void calibrateLightSensors(){
+	// If no signal is detected from the light sensors,
+	// Print an error message and default the threshold to 450
 	if(rawLightLeft == 0 || rawLightRight == 0){
 		lightThreshold = 450;
 		writeDebugStreamLine("No light signal detected. Threshold defaulted to %d", lightThreshold);
+		PlaySound(soundDownwardTones);
 		return;
 	}
-	int matReading = (int) (rawLightLeft + rawLightRight)	/ 2;				// Average the right and left sensor values
-	lightThreshold = matReading + 75;																	// Add 75 to the average
-	writeDebugStreamLine("Light level of mat: %d\nSet threshold to %d",// Print the mat light level and the threshold
+
+	// Average the right and left sensor values
+	int matReading = (int) (rawLightLeft + rawLightRight)	/ 2;
+
+	// Set the threshold to 75 above the average value, and print the threshold to the debug stream
+	lightThreshold = matReading + 75;
+	writeDebugStreamLine("Light level of mat: %d\nSet threshold to %d",
 	matReading, lightThreshold);
 }
 
-																																		// --FIND THE WHITE LINE
+/////////////////////////////////////////////////////////////////////////////////
+//
+//	Find the white line, and use it to align the robot
+//
+/////////////////////////////////////////////////////////////////////////////////
 void findWhiteLine(){
 	writeDebugStream("-- FINDING WHITE LINE --\n");
-	bool foundLineLeft = false;																				// Store whether the white line has been found
+
+	// Declare variables to store whether the line has been found on the right and left
+	bool foundLineLeft = false;
 	bool foundLineRight = false;
+
+	// Calibrate the light sensors
 	calibrateLightSensors();
 
-	int maxLight = 0;																									// Maximum signal detection:
-	ClearTimer(T1);																										// Clear the timer
+	// Set the drive motors to 25 (too high, and we'll drive right past the line)
 	motor[mDriveLeft] = 25;
 	motor[mDriveRight] = 25;
-	while(!foundLineLeft || !foundLineRight){													// While neither line has been found:
-		//if(time100[T1] % 10 == 0)																			// Every 1 second:
-		//	writeDebugStreamLine("maxLight == %d", maxLight);						// Print maximum detected value to the debug stream
-		//if(rawLightLeft > maxLight)																		// If current left light sensor value is greater than previous maximum:
-		//	maxLight = rawLightLeft;																		// Set new maximum
-		//if(rawLightRight > maxLight)																	// If current right light sensor value is greater than previous maximum:
-		//	maxLight = rawLightRight;																		// Set new maximum
 
-		if(rawLightLeft > lightThreshold && !foundLineLeft){						// If the sensor value is above the threshold:
-			foundLineLeft = true;																					// Set the "found" flag to true
+	// While both sides have not found the line, check for the line
+	while(!foundLineLeft || !foundLineRight){
+
+		// If the sensor value is above the threshold and the line has not already been found,
+		// Set the foundLine flag to true,
+		// Stop the motor on that side
+		if(rawLightLeft > lightThreshold && !foundLineLeft){
+			foundLineLeft = true;
 			writeDebugStreamLine("Found white line on the left. Detected value: %d Threshold value: %d",
-			rawLightLeft, lightThreshold);																// Print the detected value and the threshold value
-			motor[mDriveLeft] = 0;																				// Set the motor to 0
+			rawLightLeft, lightThreshold);
+			motor[mDriveLeft] = 0;
 		}
-		if(rawLightRight > lightThreshold && !foundLineRight){					// If the sensor value is above the threshold:
-			foundLineRight = true;																				// Set the "found" flag to true
+		if(rawLightRight > lightThreshold && !foundLineRight){
+			foundLineRight = true;
 			writeDebugStreamLine("Found white line on the right. Detected value: %d Threshold value: %d",
-			rawLightRight, lightThreshold);																// Prin the detected value and the threshold value
-			motor[mDriveRight] = 0;																				// Set the motor to 0
+			rawLightRight, lightThreshold);
+			motor[mDriveRight] = 0;
 		}
 	}
-	motor[mDriveLeft] = 0;																						// Set both motors to 0
+
+	// Set both drive motors to 0 (just in case)
+	motor[mDriveLeft] = 0;
 	motor[mDriveRight] = 0;
 }
-																																		// --INITALIZE THE ROBOT
+
+/////////////////////////////////////////////////////////////////
+//
+//	Initialize the robot's motors, servos, and sensors
+//
+////////////////////////////////////////////////////////////////
 void initializeRobot(){
-	writeDebugStreamLine("\n\n -- NEW INSTANCE -- \n\n");							// Print a section header to the debug stream
+	writeDebugStreamLine("\n\n -- NEW INSTANCE -- \n\n");
+	// Lower the sucker plate
 	while(SensorValue[sLiftStop] != 1)
 		motor[mBsAngle] = -25;
-	allMotorsTo(0);																										// Set all the motors to 0
+	allMotorsTo(0);
 	calibrateLightSensors();
-	nMotorEncoder[mDriveLeft] = 0;																		// Set initial encoder vlaue to 0
-	servo[rBlockDropLeft] = blockDropLeftStart;												// Put the flipper servos in the start postion
-	servo[rBlockDropRight] = blockDropRightStart;
-	servo[rConveyorTight] = conveyorTightStart;												// Put the conveyor tension servo in the start position
-
+	nMotorEncoder[mDriveLeft] = 0;
+	blockRetract();
+	servo[rConveyorTight] = conveyorTightStart;
+	// Print out the current battery level. If it is below a certain value, send a warning
+	writeDebugStreamLine("batt lvl: %d volts", nAvgBatteryLevel / 1000.0);
+	if(nAvgBatteryLevel < 7000){
+		PlaySound(soundDownwardTones);
+		writeDebugStreamLine("////////////////////\n//\n// MAIN BATTERY LOW\n// Avg Batt Level: %d \n//\n////////////////////", nAvgBatteryLevel / 1000.0);
+	}
 }
-																																		// --FIND THE IR BEACON WITH INCREMENTAL MOVEMENT
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//	Find the IR beacond and place the block there
+//
+//////////////////////////////////////////////////////////////////////////////
 void findIrIncremental(){
-	if(HTSMUXreadPowerStatus(SMUX)){
+	// If the IR seeker signal is over 600 (meaning there is a problem with the multiplexer),
+	// Play a warning sound and print a message,
+	// Place the block in the nearmost basket
+	if(irStrengthLeft > 600 || irStrengthRight > 600){
 		writeDebugStreamLine("////////////////////\n//\n// MULTIPLEXER BATTERY DEAD\n//\n////////////////////");
-		PlaySound(soundFastUpwardTones);
+		PlaySound(soundDownwardTones);
 		goTicks(inchesToTicks(10), 25);
 		placeBlock(0);
 		return;
 	}
+
+	// Set the gettingIr flag to true, turn on the IR seekers
 	gettingIr = true;
-// Store the distance from the starting position to each basket:
+
+	// Store the distance from the starting position to each basket
 	long blockDistancesCumulative[3] = {startEncoderPos + inchesToTicks(20),
 		startEncoderPos + inchesToTicks(43),
 		startEncoderPos + inchesToTicks(53)};
 
-	goTicks(inchesToTicks(10), 25);																		// Move up to the first basket
-	writeDebugStreamLine("At first basket, ready to start.\n");				// Print a "ready" message to the debug stream
-	PlaySound(soundBeepBeep);																					// Play a "ready" sound
+	// Move up to the first basket, and play a sound
+	goTicks(inchesToTicks(10), 100);
+	writeDebugStreamLine("At first basket, ready to start.\n");
+	PlaySound(soundBeepBeep);
 
-	for(int i = 0; i <= 3; i++){																			// Loop through four times:
+	// Loop through four times
+	for(int i = 0; i <= 3; i++){
 
-		if(irStrengthLeft > irThresh || irStrengthRight > irThresh){		// If the signal to either IR seeker is above the threshold:
+		// If the signal to either IR seeker is above the threshold, place the block
+		if(irStrengthLeft > irThresh || irStrengthRight > irThresh){
 
 			writeDebugStreamLine("Block placed in basket number %d. Detected value: %d Threshold value: %d",
-			i+1, (irStrengthLeft > irStrengthRight)? irStrengthLeft : irStrengthRight, irThresh);						// Print a "finished" message to the debug stream
-			placeBlock(i);																								// Place the block in the basket (pass the bakset number)
-			break;																												// Break out of the loop
+			i+1, (irStrengthLeft > irStrengthRight)? irStrengthLeft : irStrengthRight, irThresh);
+			placeBlock(i);
+			break;
 		}
 
-		else{																														// If both signals are below the threshold:
+		// If both signals are below the threshold, go to the next basket
+		else{
+			// If the robot is not at the final basket, move to the next basket
 			if(i != 3){
-				goTicks(blockDistancesCumulative[i] - 												// Go to the next basket
+				goTicks(blockDistancesCumulative[i] -
 				nMotorEncoder[mDriveRight], 50);
 				writeDebugStreamLine("Going to next basket");
 			}
+			// If the robot is at the final basket, place the block
+			// There was most likely a problem with the IR seeker
 			else{
 				placeBlock(i);
-				PlaySound(soundFastUpwardTones);
+				PlaySound(soundDownwardTones);
 				writeDebugStreamLine("Didn't find IR. Placed in last basket.");
 			}
 		}
-																																		// Print the final basket number, the detected value, and the threshold value
+
+		// Print out the current basket, the current IR value, and the IR threshold
 		writeDebugStreamLine("\n-- BASKET #%d --\nCurrent Value: %d. Need %d to stop.",
 		i+1, (irStrengthLeft > irStrengthRight)? irStrengthLeft:irStrengthRight, irThresh);
 	}
+
+	// Turn off the IR seeker
 	gettingIr = false;
-}
-
-int degreesToInches(int degrees){
-	float radians = degreesToRadians(degrees);
-	writeDebugStreamLine("Calculated %3.2f inches", radians * 8.75);
-	return (int) radians * 9;
-}
-
-void turnTicks(long ticks, int speed){
-	long ticksTarget = nMotorEncoder[mDriveRight] + ticks;
-	writeDebugStreamLine("Starting ticks: %d Ending ticks: %d Difference: %d", nMotorEncoder[mDriveRight],
-	ticksTarget, ticksTarget - nMotorEncoder[mDriveRight]);
-	if(ticks > 0){
-		while(nMotorEncoder[mDriveRight] < ticksTarget){
-			motor[mDriveLeft] = -1 * speed;
-			motor[mDriveRight] = speed;
-		}
-	}else{
-		while(nMotorEncoder[mDriveRight] > ticksTarget){
-			motor[mDriveLeft] = speed;
-			motor[mDriveRight] = -1 * speed;
-		}
-	}
-	writeDebugStreamLine("Actual ending value: %d Error: %d", nMotorEncoder[mDriveRight],
-	ticksTarget - nMotorEncoder[mDriveRight]);
-	motor[mDriveLeft] = 0;
-	motor[mDriveRight] = 0;
 }

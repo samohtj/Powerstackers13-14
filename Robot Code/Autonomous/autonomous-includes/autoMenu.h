@@ -6,106 +6,202 @@
 ////////////////////////////////////////////////////////////
 #include "JoystickDriver.c"
 
-TButtons NEXT_BUTTON = kRightButton;																	// Create constants to make it easier to use the buttons
+// Create constants to make it easier to use the buttons
+TButtons NEXT_BUTTON = kRightButton;
 TButtons PREV_BUTTON = kLeftButton;
 TButtons DOWN_BUTTON = kEnterButton;
-																																			// -- SWITCH BOOLEAN TO OPPOSITE VALUE
+
+///////////////////////////////////////////////////////////
+//
+//	Switch a boolean to the opposite value
+//
+///////////////////////////////////////////////////////////
 void switchBool(bool* in, TButtons activeButton){
-	if(activeButton == NEXT_BUTTON || activeButton == PREV_BUTTON)			// If the active button is the left or right button:
-		*in = !*in;																												// Toggle the input
+	if(activeButton == NEXT_BUTTON || activeButton == PREV_BUTTON)
+		*in = !*in;
 }
-																																			// -- INCREMENT OR DECREMENT AN INTEGER BY 1
+
+//////////////////////////////////////////////////////////
+//
+//	Increment or decrement an integer by 1
+//
+/////////////////////////////////////////////////////////
 void switchInt(int* in, TButtons activeButton){
-	if(activeButton == NEXT_BUTTON)																			// If the active button is the right arrow button:
-		*in = *in + 1;																										// Add 1 to the value
-	if(activeButton == PREV_BUTTON)																			// If the active button is the left arrow button:
-		*in = *in - 1;																										// Subtract 1 from the value
+	if(activeButton == NEXT_BUTTON)
+		*in = *in + 1;
+	if(activeButton == PREV_BUTTON)
+		*in = *in - 1;
 }
-																																			// -- INCREMENT OR DECREMENT A FLOAT BY .1
+
+/////////////////////////////////////////////////////////
+//
+//	Increment or decrement an integer by 5
+//
+////////////////////////////////////////////////////////
+void switchIntByFive(int* in, TButtons activeButton){
+	if(activeButton == NEXT_BUTTON)
+		*in = *in + 5;
+	if(activeButton == PREV_BUTTON)
+		*in = *in - 5;
+}
+
+////////////////////////////////////////////////////////////
+//
+//	Increment or decrement a floating point number by 0.1
+//
+////////////////////////////////////////////////////////////
 void switchFloat(float* in, TButtons activeButton){
-	if(activeButton == NEXT_BUTTON)																			// If the active button is the right arrow button:
-		*in = *in + 0.1;																									// Add 0.1 to the value
-	if(activeButton == PREV_BUTTON)																			// If the active button is the left arrow button:
-		*in = *in - 0.1;																									// Subtract 0.1 from the value
+	if(activeButton == NEXT_BUTTON)
+		*in = *in + 0.1;
+	if(activeButton == PREV_BUTTON)
+		*in = *in - 0.1;
 }
-																																			// -- GAME OPTION VARIABLES
-bool startNear = true;																								// Starting on the side closer to the drivers or the side farther
-bool doIr = true;																											// Placing the IR block or not
-bool goAround = false;																								// Go around the other side of the ramp, or come back to the side you started on
-bool rampOtherSide = false;																						// Go to our half of the ramp or the other alliance's half
-//bool blockRamp = false;																							// Blocking the ramp or not
-int delay = 0;																												// Delay (in seconds) applied a the start of the match
-const int maxDelay = 10;																							// Maximum possible delay
-																																			// -- CONTINUOUSLY RUN AND UPDATE THE GAME OPTIONS
+
+// Game option variables (offensive play style):
+// startNear: Starting with the ramp to the robot's right or its left
+// doIr: Place the IR block or not
+// goAround: After placing the IR block, go around the far side of the ramp, or the near side
+// rampOtherSide: Go up our alliance's half of the ramp, or the other alliance's half
+bool startNear = true;
+bool doIr = true;
+bool goAround = false;
+bool rampOtherSide = false;
+
+// Game option variables (general):
+// delay: Amount of time to wait before starting the run (in seconds)
+// maxDelay: The maximum time you can wait
+// forwardMotorRatio: The ratio of the right wheel to the left wheel speed, going forward
+// backwardMotorRatio: The ratio of the right wheel to the left wheel speed, going backward
+int delay = 0;
+const int maxDelay = 15;
+int forwardMotorRatio = 90;
+int backwardMotorRatio = 90;
+
+/////////////////////////////////////////////////////////////
+//
+//	Run the menu
+//
+/////////////////////////////////////////////////////////////
 task runMenuOffensive()
 {
-	bDisplayDiagnostics = false;																				// Turn off the diagnotics display
-	void* currVar;																											// Void pointer to to store active variable
-	char currType;																											// Identify the data type of the active variable
+	// Turn off the diagnostic display, and clear the screen
+	bDisplayDiagnostics = false;
+	eraseDisplay();
 
-	currVar = &startNear;																								// Set the current variable to startNear
-	currType = 'b';																											// Set the current data type to boolean
+	// Declare variables to store the currently selected variable,
+	// And the data type of the currently selected variable
+	void* currVar;
+	char currType;
 
-	while (true){																												// Loop forever
-		if(delay < 0)																											// If the delay is below 0:
-			delay = 0;																											// Set the delay to 0
-		else if(delay > maxDelay)																					// If the delay is above the maximum:
-			delay = maxDelay;																								// Set the delay to the maximum
+	// Initialize the current variable to startNear,
+	// And initialize the data type to "boolean"
+	currVar = &startNear;
+	currType = 'b';
 
-		nxtDisplayString(0, "Near:     %s", startNear ? "yes":"no ");			// Display all the variables and values
+	// Run this code until the task is ended
+	while (true){
+
+		// If the delay is below zero, set it to zero
+		if(delay < 0)
+			delay = 0;
+
+		// If the delay is above the maximum delay, set it to the maximum delay
+		else if(delay > maxDelay)
+			delay = maxDelay;
+
+		// Print all the variable names and their current values to the screen
+		nxtDisplayString(0, "Near:     %s", startNear ? "yes":"no ");
 		nxtDisplayString(1, "Do Ir:    %s", doIr ? "yes":"no ");
 		nxtDisplayString(2, "Go Around:%s", goAround ? "yes":"no ");
 		nxtDisplayString(3, "RmpOthrSd:%s", rampOtherSide ? "yes":"no ");
 		nxtDisplayString(4, "Delay:    %2d", delay);
+		nxtDisplayString(5, "FrwrdRatio:%d ", forwardMotorRatio);
+		nxtDisplayString(6, "BkwrdRatio:%d ", backwardMotorRatio);
 
-		if(currVar == &startNear){																				// Print a selection icon next to the active variable
+		// Print a selection icon next to the active variable name
+		if(currVar == &startNear){
 			nxtDisplayStringAt(94, 63, "]");
 			nxtDisplayStringAt(94, 55, " ");
 			nxtDisplayStringAt(94, 47, " ");
 			nxtDisplayStringAt(94, 39, " ");
 			nxtDisplayStringAt(94, 31, " ");
+			nxtDisplayStringAt(94, 24, " ");
+			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &doIr){
 			nxtDisplayStringAt(94, 63, " ");
 			nxtDisplayStringAt(94, 55, "]");
 			nxtDisplayStringAt(94, 47, " ");
 			nxtDisplayStringAt(94, 39, " ");
 			nxtDisplayStringAt(94, 31, " ");
+			nxtDisplayStringAt(94, 24, " ");
+			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &goAround){
 			nxtDisplayStringAt(94, 63, " ");
 			nxtDisplayStringAt(94, 55, " ");
 			nxtDisplayStringAt(94, 47, "]");
 			nxtDisplayStringAt(94, 39, " ");
 			nxtDisplayStringAt(94, 31, " ");
+			nxtDisplayStringAt(94, 24, " ");
+			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &rampOtherSide){
 			nxtDisplayStringAt(94, 63, " ");
 			nxtDisplayStringAt(94, 55, " ");
 			nxtDisplayStringAt(94, 47, " ");
 			nxtDisplayStringAt(94, 39, "]");
 			nxtDisplayStringAt(94, 31, " ");
+			nxtDisplayStringAt(94, 24, " ");
+			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &delay){
 			nxtDisplayStringAt(94, 63, " ");
 			nxtDisplayStringAt(94, 55, " ");
 			nxtDisplayStringAt(94, 47, " ");
 			nxtDisplayStringAt(94, 39, " ");
 			nxtDisplayStringAt(94, 31, "]");
+			nxtDisplayStringAt(94, 24, " ");
+			nxtDisplayStringAt(94, 17, " ");
+		}else if(currVar == &forwardMotorRatio){
+			nxtDisplayStringAt(94, 63, " ");
+			nxtDisplayStringAt(94, 55, " ");
+			nxtDisplayStringAt(94, 47, " ");
+			nxtDisplayStringAt(94, 39, " ");
+			nxtDisplayStringAt(94, 31, " ");
+			nxtDisplayStringAt(94, 24, "]");
+			nxtDisplayStringAt(94, 17, " ");
+		}else if(currVar == &backwardMotorRatio){
+			nxtDisplayStringAt(94, 63, " ");
+			nxtDisplayStringAt(94, 55, " ");
+			nxtDisplayStringAt(94, 47, " ");
+			nxtDisplayStringAt(94, 39, " ");
+			nxtDisplayStringAt(94, 31, " ");
+			nxtDisplayStringAt(94, 24, " ");
+			nxtDisplayStringAt(94, 17, "]");
 		}
 
-		if(nNxtButtonPressed == NEXT_BUTTON || 														// If the right or left arrow button is pressed:
+		// If the right or left arrow button is pressed on the NXT,
+		// Perform the appropriate action for the data type of the selected variable
+		if(nNxtButtonPressed == NEXT_BUTTON ||
 			nNxtButtonPressed == PREV_BUTTON){
-			if(currType == 'b')																							// If the data type is boolean:
-				switchBool(currVar, nNxtButtonPressed);												// Switch the boolean variable
-			else if(currType == 'i')																				// If the data type is integer:
-				switchInt(currVar, nNxtButtonPressed);												// Switch the integer variable
-			PlaySound(soundBlip);																						// Play a sound
-			ClearTimer(T1);																									// Clear the timer
-			while(nNxtButtonPressed != kNoButton && time1[T1] <= 400){			// If any button is pressd, AND less than four seconds have passed:
-																																			// Do nothing
-			}
+			if(currType == 'b')
+				switchBool(currVar, nNxtButtonPressed);
+			else if(currType == 'i')
+				switchInt(currVar, nNxtButtonPressed);
+			else if(currType == 'l')
+				switchIntByFive(currVar, nNxtButtonPressed);
+
+			// Play a short sound
+			PlaySound(soundBlip);
+
+			// Clear the timer. While the timer reads less than four seconds
+			// And any button is pressed, do nothing
+			ClearTimer(T1);
+			while(nNxtButtonPressed != kNoButton && time1[T1] <= 400){}
 		}
 
-		if(nNxtButtonPressed == DOWN_BUTTON){															// If the center orange button is pressed:
-			if(currVar == &startNear){																			// Set the current variable to the next in the list
-				currVar = &doIr;																							// Set the current data type to the appropriate type
+		// If the orange button is pressed on the NXT,
+		// Switch the active variable to the next variable in the list
+		if(nNxtButtonPressed == DOWN_BUTTON){
+			if(currVar == &startNear){
+				currVar = &doIr;
 				currType = 'b';
 			}else if(currVar == &doIr){
 				currVar = &goAround;
@@ -117,21 +213,35 @@ task runMenuOffensive()
 				currVar = &delay;
 				currType = 'i';
 			}else if(currVar == &delay){
+				currVar = &forwardMotorRatio;
+				currType = 'l';
+			}else if(currVar == &forwardMotorRatio){
+				currVar = &backwardMotorRatio;
+				currType = 'l';
+			}else if(currVar == &backwardMotorRatio){
 				currVar = &startNear;
 				currType = 'b';
 			}
-			PlaySound(soundBlip);																						// Play a sound
-			ClearTimer(T1);																									// Clear the timer
-			while(nNxtButtonPressed != kNoButton && time1[T1] <= 400){			// While any button is pressed, and less than four seconds have passed:
-																																			// Do nothing
-			}
+
+			// Play a short sound
+			PlaySound(soundBlip);
+
+			// Clear the timer. While the timer reads less than four seconds
+			// And any button is pressed, do nothing
+			ClearTimer(T1);
+			while(nNxtButtonPressed != kNoButton && time1[T1] <= 400){}
 		}
 	}
 
 
 }
-																																			// -- PRINT THE GAME CHOICES TO THE DEBUG STREAM
+
+///////////////////////////////////////////////////////////////////////
+//
+//	Print all the chosen options to the debug stream
+//
+//////////////////////////////////////////////////////////////////////
 void printMenuChoices(){
-	writeDebugStreamLine("Start on near side: %s\nFind IR basket: %s\nGo around far end of ramp: %s\nGo to the other half of the ramp: %s\nDelay: %d",
+	writeDebugStreamLine("Start on near side: %s\nFind IR basket: %s\nGo around far end of ramp: %s\nGo to the other half of the ramp: %s\nDelay: %d seconds",
 		(startNear)? "Yes":"No", (doIr)? "Yes":"No", (goAround)? "Yes":"No", (rampOtherSide)? "Yes":"No", delay);
 }

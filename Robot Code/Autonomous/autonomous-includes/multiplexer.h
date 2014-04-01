@@ -1,41 +1,54 @@
-/*
-*	Include some necessary files
-*/
+// Include files to handle the multiplexer and all the different sensors
 #include "hitechnic-sensormux.h"
 #include "lego-light.h"
 #include "hitechnic-irseeker-v2.h"
 #include "hitechnic-touchmux.h"
 #include "hitechnic-gyro.h"
-																																			// CONSTANTS
-const tMUXSensor irLeft = msensor_S2_1;																// Left IR seeker address
-const tMUXSensor irRight = msensor_S2_2;															// Right IR seeker address
-const tMUXSensor lightSenseLeft 	= msensor_S2_3;											// Left light sensor address
-const tMUXSensor lightSenseRight 	= msensor_S2_4;											// Right light sensor address
-																																			// SENSOR VALUES
-int rawLightLeft;																											// Left IR seeker value
-int rawLightRight;																										// Right IR seeker value
-int irStrengthLeft;																										// Left light sensor value
-int irStrengthRight;																									// Right light sensor value
 
+// Create variables to store the sensor addresses
+const tMUXSensor irLeft = msensor_S2_1;
+const tMUXSensor irRight = msensor_S2_2;
+const tMUXSensor lightSenseLeft 	= msensor_S2_3;
+const tMUXSensor lightSenseRight 	= msensor_S2_4;
+
+// Create variables to store the sensor values
+int rawLightLeft;
+int rawLightRight;
+int irStrengthLeft;
+int irStrengthRight;
+
+// Flag to turn on or off the IR seekers
 bool gettingIr = false;
-int dummy;																														// Dummy variable
+int dummy;
 
-/*
-*	Constantly update the variables with the sensor values
-*/
+/////////////////////////////////////////////////////////////////////////
+//
+//	Update the sensor values
+//
+////////////////////////////////////////////////////////////////////////
 task getSmux()
 {
-	LSsetActive(lightSenseLeft);																				// Turn the light sensors on to show that we're working
+	// Turn on the red lights on the light sensors to show that we're working
+	LSsetActive(lightSenseLeft);
 	LSsetActive(lightSenseRight);
-	HTGYROstartCal(sGyro);
-	writeDebugStreamLine("Multiplexer setup ready");										// Print a "ready" message
 
+	// Calibrate the gyroscope
+	HTGYROstartCal(sGyro);
+
+	// Print a ready message
+	writeDebugStreamLine("Multiplexer setup ready");
+
+	// Loop forever
 	while (true){
-		rawLightLeft = LSvalRaw(lightSenseLeft);													// Set all the variables to the sensor readings
+		// Set the light sensor variables to the light sensor signal values
+		rawLightLeft = LSvalRaw(lightSenseLeft);
 		rawLightRight = LSvalRaw(lightSenseRight);
+
+		// Only update the IR seeker variables when the IR seekers are turned on
+		// This keeps the debug stream clear
 		if(gettingIr){
-			if(!HTIRS2readEnhanced(irLeft, dummy, irStrengthLeft)){						// If the function returns false:
-				writeDebugStreamLine("Something's wrong with the IR");					// Let the operator know that something is wrong
+			if(!HTIRS2readEnhanced(irLeft, dummy, irStrengthLeft)){
+				writeDebugStreamLine("Something's wrong with the IR");
 			}
 			if(!HTIRS2readEnhanced(irRight, dummy, irStrengthRight)){
 				writeDebugStreamLine("Something's wrong with the IR");

@@ -17,6 +17,7 @@
 #pragma config(Servo,  srvo_S1_C3_6,    servo6,               tServoNone)
 
 #include "autonomousTasks.h"
+#include "JoystickDriver.c"
 
 task main()
 {
@@ -31,9 +32,9 @@ task main()
 	StartTask(showDebugInfo);
 	eraseDisplay();
 
-	goTicks(inchesToTicks(36), 75);
-	wait10Msec(100);
-	goTicks(-1 * inchesToTicks(36), 75);
-
-
+	goTicks(inchesToTicks(24), 75);
+	forwardMotorRatio = 100;
+	goTicks(inchesToTicks(24), 75);
+	forwardMotorRatio = 110;
+	goTicks(inchesToTicks(24), 75);
 }
