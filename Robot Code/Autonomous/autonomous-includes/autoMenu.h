@@ -121,58 +121,23 @@ task runMenuOffensive()
 		// Print a selection icon next to the active variable name
 		if(currVar == &startNear){
 			nxtDisplayStringAt(94, 63, "]");
-			nxtDisplayStringAt(94, 55, " ");
-			nxtDisplayStringAt(94, 47, " ");
-			nxtDisplayStringAt(94, 39, " ");
-			nxtDisplayStringAt(94, 31, " ");
-			nxtDisplayStringAt(94, 24, " ");
 			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &doIr){
 			nxtDisplayStringAt(94, 63, " ");
 			nxtDisplayStringAt(94, 55, "]");
-			nxtDisplayStringAt(94, 47, " ");
-			nxtDisplayStringAt(94, 39, " ");
-			nxtDisplayStringAt(94, 31, " ");
-			nxtDisplayStringAt(94, 24, " ");
-			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &goAround){
-			nxtDisplayStringAt(94, 63, " ");
 			nxtDisplayStringAt(94, 55, " ");
 			nxtDisplayStringAt(94, 47, "]");
-			nxtDisplayStringAt(94, 39, " ");
-			nxtDisplayStringAt(94, 31, " ");
-			nxtDisplayStringAt(94, 24, " ");
-			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &rampOtherSide){
-			nxtDisplayStringAt(94, 63, " ");
-			nxtDisplayStringAt(94, 55, " ");
 			nxtDisplayStringAt(94, 47, " ");
 			nxtDisplayStringAt(94, 39, "]");
-			nxtDisplayStringAt(94, 31, " ");
-			nxtDisplayStringAt(94, 24, " ");
-			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &delay){
-			nxtDisplayStringAt(94, 63, " ");
-			nxtDisplayStringAt(94, 55, " ");
-			nxtDisplayStringAt(94, 47, " ");
 			nxtDisplayStringAt(94, 39, " ");
 			nxtDisplayStringAt(94, 31, "]");
-			nxtDisplayStringAt(94, 24, " ");
-			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &forwardMotorRatio){
-			nxtDisplayStringAt(94, 63, " ");
-			nxtDisplayStringAt(94, 55, " ");
-			nxtDisplayStringAt(94, 47, " ");
-			nxtDisplayStringAt(94, 39, " ");
 			nxtDisplayStringAt(94, 31, " ");
 			nxtDisplayStringAt(94, 24, "]");
-			nxtDisplayStringAt(94, 17, " ");
 		}else if(currVar == &backwardMotorRatio){
-			nxtDisplayStringAt(94, 63, " ");
-			nxtDisplayStringAt(94, 55, " ");
-			nxtDisplayStringAt(94, 47, " ");
-			nxtDisplayStringAt(94, 39, " ");
-			nxtDisplayStringAt(94, 31, " ");
 			nxtDisplayStringAt(94, 24, " ");
 			nxtDisplayStringAt(94, 17, "]");
 		}

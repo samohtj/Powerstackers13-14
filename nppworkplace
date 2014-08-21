@@ -1,0 +1,52 @@
+<NotepadPlus>
+    <Project name="RobotC">
+        <Folder name="Autonomous">
+            <Folder name="autonomous-includes">
+                <File name="Robot Code\Autonomous\autonomous-includes\autoMenu.h" />
+                <File name="Robot Code\Autonomous\autonomous-includes\autonomousTasks.h" />
+                <File name="Robot Code\Autonomous\autonomous-includes\multiplexer.h" />
+                <File name="Robot Code\Autonomous\autonomous-includes\powerStackerSplash.h" />
+                <File name="Robot Code\Autonomous\autonomous-includes\turnTest.c" />
+            </Folder>
+            <File name="Robot Code\Autonomous\offensiveAuto.c" />
+        </Folder>
+        <Folder name="Deprecated">
+            <File name="Robot Code\Deprecated\afterMatchflag.c" />
+            <File name="Robot Code\Deprecated\afterMatchLower.c" />
+            <File name="Robot Code\Deprecated\afterMatchSuck.c" />
+            <File name="Robot Code\Deprecated\all_the_tests.c" />
+            <File name="Robot Code\Deprecated\autonomous_control.c" />
+            <File name="Robot Code\Deprecated\autonomous_control_old.c" />
+            <File name="Robot Code\Deprecated\autonomous_tasks.c" />
+            <File name="Robot Code\Deprecated\Auto_PIR.c" />
+            <File name="Robot Code\Deprecated\color_mode_picker.c" />
+            <File name="Robot Code\Deprecated\defensiveAuto.c" />
+            <File name="Robot Code\Deprecated\el-cheato.h" />
+            <File name="Robot Code\Deprecated\el-cheato.pdf" />
+            <File name="Robot Code\Deprecated\experiments.c" />
+            <File name="Robot Code\Deprecated\get_ir.c" />
+            <File name="Robot Code\Deprecated\irSmuxTest.c" />
+            <File name="Robot Code\Deprecated\justGoForward.c" />
+            <File name="Robot Code\Deprecated\multiplexer.c" />
+            <File name="Robot Code\Deprecated\NewFile_Template001.c" />
+            <File name="Robot Code\Deprecated\placeAndRamp.c" />
+            <File name="Robot Code\Deprecated\placeIr.c" />
+            <File name="Robot Code\Deprecated\placeIr.pdf" />
+            <File name="Robot Code\Deprecated\plopAndRamp.c" />
+            <File name="Robot Code\Deprecated\powerStackerSplash.c" />
+            <File name="Robot Code\Deprecated\TouchTest.c" />
+        </Folder>
+        <Folder name="Tele-Op">
+            <File name="Robot Code\Tele-Op\afterMatch.c" />
+            <File name="Robot Code\Tele-Op\afterMatchflag.c" />
+            <File name="Robot Code\Tele-Op\afterMatchLower.c" />
+            <File name="Robot Code\Tele-Op\afterMatchSuck.c" />
+            <File name="Robot Code\Tele-Op\all_the_tests.c" />
+            <File name="Robot Code\Tele-Op\debugStreamOutput.h" />
+            <File name="Robot Code\Tele-Op\Following_IR_Beacon.c" />
+            <File name="Robot Code\Tele-Op\straightCalibration.c" />
+            <File name="Robot Code\Tele-Op\teleop_1dr.c" />
+            <File name="Robot Code\Tele-Op\teleop_2dr.c" />
+        </Folder>
+    </Project>
+</NotepadPlus>

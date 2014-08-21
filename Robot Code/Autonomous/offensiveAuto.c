@@ -44,7 +44,7 @@ task main(){
 	// Initialize all the motors and servos
 	StartTask(runMenuOffensive);
 	StartTask(getSmux);
-	PlaySound(soundFastUpwardTones);
+	PlaySound(soundUpwardTones);
 	wait10Msec(200);
 	initializeRobot();
 

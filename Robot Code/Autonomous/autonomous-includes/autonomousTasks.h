@@ -334,10 +334,14 @@ void initializeRobot(){
 	blockRetract();
 	servo[rConveyorTight] = conveyorTightStart;
 	// Print out the current battery level. If it is below a certain value, send a warning
-	writeDebugStreamLine("batt lvl: %d volts", nAvgBatteryLevel / 1000.0);
-	if(nAvgBatteryLevel < 7000){
-		PlaySound(soundDownwardTones);
-		writeDebugStreamLine("////////////////////\n//\n// MAIN BATTERY LOW\n// Avg Batt Level: %d \n//\n////////////////////", nAvgBatteryLevel / 1000.0);
+	writeDebugStreamLine("extBatt lvl: %2.2f volts\nNXT Batt lvl: %2.2f", externalBatteryAvg / 1000.0, nAvgBatteryLevel / 1000.0);
+	if(externalBatteryAvg < 13000){
+		PlaySound(soundException);
+		writeDebugStreamLine("////////////////////\n//\n// MAIN BATTERY LOW\n// Avg Batt Level: %2.2f \n//\n////////////////////", externalBatteryAvg / 1000.0);
+	}
+	if(nAvgBatteryLevel < 7500){
+		PlaySound(soundException);
+		writeDebugStreamLine("///////////////////\n//\n// NXT BATTERY LOW\n// Avg Batt Level: %2.2f\n//\n///////////////////////", nAvgBatteryLevel / 1000.0);
 	}
 }
 

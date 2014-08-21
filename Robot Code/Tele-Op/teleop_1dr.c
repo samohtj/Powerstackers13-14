@@ -1,4 +1,3 @@
-
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
 #pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     SMUX,           sensorI2CCustom)
@@ -23,7 +22,7 @@
 //
 //	TELE-OP CODE FOR FTC# 5029
 //	2013-2014 BLOCK PARTY
-//	UPDATED 3-31-14
+//	UPDATED 8-16-2014
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,6 +61,9 @@ bool		btnReverse;
 bool		btnFlagClock;
 bool		btnFlagCounter;
 bool		btnConveyorTight;
+
+bool btnAngleUp;
+bool btnAngleDown;
 
 // Boolean flags:
 // driveMode: The drive mode (straight or normal)
@@ -153,11 +155,13 @@ void getCustomJoystickSettings(){
 	stickAngle			= joystick.joy2_y1;		// dr2 left joystick
 	stickBlockStop	=	joystick.joy2_y2;		// dr2 right joystick
 	btnStraightDr		= (joy1Btn(3) == 1);	// dr1 red button
-	btnFlagClock		= (joy1Btn(5) == 1);	// dr1 left shoulder
-	btnFlagCounter	= (joy1Btn(7) == 1);	// dr1 left trigger
-	btnReverse			= (joy2Btn(8) == 1);	// dr2 right trigger
-	btnConveyor			=	(joy2Btn(6) == 1);	// dr2 right shoulder
-	btnConveyorTight =(joy2Btn(7) == 1);	// dr2 left trigger
+	//btnFlagClock		= (joy1Btn(5) == 1);	// dr1 left shoulder
+	//btnFlagCounter	= (joy1Btn(7) == 1);	// dr1 left trigger
+	btnReverse			= (joy1Btn(8) == 1);	// dr2 right trigger
+	btnConveyor			=	(joy1Btn(6) == 1);	// dr2 right shoulder
+	//btnConveyorTight =(joy2Btn(7) == 1);	// dr2 left trigger
+	btnAngleUp = (joy1btn(5) == 1);
+	btnAngleDown = (joy1btn(7) == 1);
 }
 
 //////////////////////////////////////////////////////////////
@@ -278,7 +282,8 @@ task main(){
 		}
 
 		// If the sucker plate stick is below the threshold, do not move the motors
-		if(abs(stickAngle) < stickThreshold){
+		if(!btnAngleDown && !btnAngleUp)
+			{
 			motor[mBsAngle] = 0;
 		}
 
@@ -286,12 +291,13 @@ task main(){
 		// And the stop sensor is not activated, move the motors
 		// If the stop sensor is activated, stop the motors
 		// This keeps the sucker plate from going down too far and damaging the gears
-		else{
-			if(stickAngle < 0 && SensorValue[sConvStop] == 1){
+		else
+			{
+			if(btnAngleDown && SensorValue[sConvStop] == 1){
 				motor[mBsAngle] = 0;
 				nMotorEncoder[mBsAngle] = 0;
 			}else
-				motor[mBsAngle] = ((stickAngle > 0)? 100 : -100);
+				motor[mBsAngle] = ((btnAngleUp)? 100 : ((btnAngleDown)? -100 : 0));
 		}
 
 		// If the block gate stick is below the threshold, do not move the motors
