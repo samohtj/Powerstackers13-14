@@ -11,6 +11,8 @@ import teams.Team;
 
 public class ScoutingApp extends JFrame{
 	
+	ConsoleWindow console = new ConsoleWindow();
+	
 	JPanel teamPanel = new JPanel(new GridLayout(1, 2));
 	JPanel matchPanel = new JPanel(new GridLayout(1, 2));
 
@@ -26,19 +28,26 @@ public class ScoutingApp extends JFrame{
 		
 		add(teamPanel, BorderLayout.WEST);
 		add(matchPanel, BorderLayout.EAST);
+		add(console.checkboxEnableConsole, BorderLayout.SOUTH);
+		
+		teamsListPanel.setConsoleWindow(console);
 		
 		setTitle("Scouting Application");
-		setSize(1000, 600);
+		//setSize(1000, 600);
 		setLocationRelativeTo(null);
 		//setExtendedState(MAXIMIZED_BOTH);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
+		setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
 	}
 	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		
+	public void setConsoleVisible(boolean vis){
+		console.setVisible(vis);
+	}
+	
+	public static void main(String[] args) {		
 		ScoutingApp frame = new ScoutingApp();
+		frame.console.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		
 		Team[] teamsArray = new Team[4];
 		teamsArray[Match.RED_1] = new Team(5029, "Powerstackers");

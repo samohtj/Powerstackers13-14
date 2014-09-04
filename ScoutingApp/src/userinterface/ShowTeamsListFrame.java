@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -30,8 +31,11 @@ import teams.Team;
 public class ShowTeamsListFrame extends JPanel{
 	
 	// Create a teams list, and a JScrollPane to store it.
-	private TeamsList list = new TeamsList();
+	public TeamsList list = new TeamsList();
 	private JScrollPane scrollPane = new JScrollPane(list.table);
+	private ShowTeamFrame teamDisplayPanel = new ShowTeamFrame();
+	
+	//public ConsoleWindow cons = new ConsoleWindow();
 	
 	// Create buttons to add, delete, and edit teams
 	private JButton teamAddBtn = new JButton("Add");
@@ -43,11 +47,10 @@ public class ShowTeamsListFrame extends JPanel{
 	 */
 	public ShowTeamsListFrame(){
 		this.setBorder(new TitledBorder("Teams"));
-		this.setLayout(new GridLayout(2, 1));
+		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
 		list.table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		add(scrollPane);
-		
 		
 		// Button Action Listeners
 		teamAddBtn.addActionListener(new ActionListener(){
@@ -60,25 +63,31 @@ public class ShowTeamsListFrame extends JPanel{
 		teamDeleteBtn.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				deleteTeam();
+				if(list.getSelectedIndex() != -1)
+					deleteTeam();
+				else
+					list.cons.printConsoleLine("Cannot delete team; no row selected"); 
 			}
 		});
 		
 		
-		/*
-		 * GRIDBAGLAYOUT
-		 * USE IT 
-		 */
-		JPanel btnsPanel = new JPanel(new GridLayout(1, 3));
-		btnsPanel.setPreferredSize(new Dimension(300, 100));
-		teamAddBtn.setPreferredSize(new Dimension(50, 50));
-		teamEditBtn.setPreferredSize(new Dimension(50, 50));
-		teamDeleteBtn.setPreferredSize(new Dimension(50, 50));
+		JPanel btnsPanel = new JPanel();
+		btnsPanel.setLayout(new BoxLayout(btnsPanel, BoxLayout.X_AXIS));
+		//btnsPanel.setMaximumSize(new Dimension(300, 100));
+
+		teamAddBtn.setPreferredSize(new Dimension(100,100));
+		teamEditBtn.setPreferredSize(new Dimension(100,100));
+		teamDeleteBtn.setPreferredSize(new Dimension(100,100));
+		
 		btnsPanel.add(teamAddBtn);
 		btnsPanel.add(teamEditBtn);
 		btnsPanel.add(teamDeleteBtn);
 		add(btnsPanel);
 		
+	}
+	
+	public void setConsoleWindow(ConsoleWindow console){
+		list.setConsoleWindow(console);
 	}
 	
 	public void showAddTeamDialog(){
@@ -98,10 +107,12 @@ public class ShowTeamsListFrame extends JPanel{
 	}
 	
 	public void deleteTeam(){
+		//list.cons.printConsoleLine("Entered 'delete somebody' method");
 		try{
+			list.cons.printConsoleLine("Deleting team " + list.getTeam(list.getSelectedIndex()));
 			list.removeTeam(list.getSelectedIndex());
 		}catch(teams.TeamsList.IndexOutOfBoundsException e) {
-			
+			list.cons.printConsoleLine("ERROR: Index out of bounds. Index not selected or does not exist.");
 		}
 	}
 	
@@ -133,6 +144,8 @@ public class ShowTeamsListFrame extends JPanel{
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
+		
+		//teamsFrame.list.cons.setVisible(true);
 		
 		//teamsFrame.showAddTeamDialog();
 		

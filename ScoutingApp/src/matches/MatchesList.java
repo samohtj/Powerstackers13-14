@@ -66,11 +66,20 @@ public class MatchesList {
 			rowColors.add((list.get(i).getWinner() == Match.RED_WINS)? Color.RED : Color.BLUE);
 		}
 		
-		// Create a new ListModel from the data we just collected.
+		// Create a new ListModel from the data we just collected and add it to the table
 		MatchesListModel model = new MatchesListModel(matchesList, columnHeaders, rowColors);
-		
-		// Set the JTable's model to the one we just created.
 		table.setModel(model);
+		/*
+		table.getColumnModel().getColumn(0).setMinWidth(25);
+		table.getColumnModel().getColumn(0).setMaxWidth(200);
+		table.getColumnModel().getColumn(0).setPreferredWidth(50);
+		table.getColumnModel().getColumn(1).setMinWidth(25);
+		table.getColumnModel().getColumn(1).setMaxWidth(125);
+		table.getColumnModel().getColumn(1).setPreferredWidth(25);
+		table.getColumnModel().getColumn(2).setMinWidth(25);
+		table.getColumnModel().getColumn(2).setMaxWidth(125);
+		table.getColumnModel().getColumn(2).setPreferredWidth(25);
+		*/	
 	}
 	
 	/**

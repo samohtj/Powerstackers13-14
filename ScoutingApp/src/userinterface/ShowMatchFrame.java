@@ -35,6 +35,8 @@ public class ShowMatchFrame extends JPanel{
 	JLabel bluePenaltiesLbl = new JLabel();
 	JLabel blueFinalLbl = new JLabel();
 	
+	public ShowMatchFrame(){}
+	
 	/**
 	 * Constructor that fills all the labels and sets up the display window. Shows four teams, scores, and penalties
 	 * @param match

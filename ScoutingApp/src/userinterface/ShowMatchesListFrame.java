@@ -1,5 +1,9 @@
 package userinterface;
 
+import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -13,15 +17,38 @@ import matches.MatchesList;
 
 public class ShowMatchesListFrame extends JPanel{
 	
-	MatchesList list = new MatchesList();
-	JScrollPane scrollPane = new JScrollPane(list.table);
+	// I had to add this, or Eclipse would be mad at me
+	private static final long serialVersionUID = 1L;
 	
-	public ShowMatchesListFrame(){
-		list.table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	public MatchesList list = new MatchesList();
+	public JScrollPane scrollPane = new JScrollPane(list.table);
+	private ShowMatchFrame matchDisplay = new ShowMatchFrame();
+	
+	public ShowMatchesListFrame(MatchesList list){
+		this.list = list;
+		scrollPane = new JScrollPane(this.list.table);
+		this.list.table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		scrollPane.setBorder(new TitledBorder("Matches"));
 		add(scrollPane);
 		
 		
+		add(matchDisplay);
+		
+		list.table.addMouseListener(new ShowMatchInfoListener());
+		
+		setPreferredSize(new Dimension(400, 600));
+	}
+	
+	private class ShowMatchInfoListener extends MouseAdapter{
+		public void mouseClicked(MouseEvent e){
+			JTable table = (JTable) e.getSource();
+			System.out.println("Clicked row" + table.getSelectedRow());
+			matchDisplay = new ShowMatchFrame(list.getMatchAt(table.getSelectedColumn()));
+		}
+	}
+	
+	public ShowMatchesListFrame(){
+		this(new MatchesList());
 	}
 
 	public static void main(String[] args) {
@@ -45,10 +72,11 @@ public class ShowMatchesListFrame extends JPanel{
 		
 		JFrame framee = new JFrame();
 		framee.add(frame);
-		framee.setSize(500, 500);
+		//framee.setSize(500, 500);
 		framee.setLocationRelativeTo(null);
 		framee.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		framee.setVisible(true);
+		framee.setExtendedState(framee.getExtendedState() | JFrame.MAXIMIZED_BOTH);
 
 		
 
