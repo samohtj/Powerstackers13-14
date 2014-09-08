@@ -20,6 +20,7 @@ public class Tournament {
 	private String eventName = "";
 	private String eventLocation = "";
 	
+	@SuppressWarnings("unused")
 	private ConsoleWindow cons = new ConsoleWindow();
 	
 	public void setEventName(String eventName){
@@ -68,6 +69,7 @@ public class Tournament {
 	
 	public void saveData(){
 		try{
+			@SuppressWarnings("resource")
 			PrintWriter writer = new PrintWriter(tournamentSavePath + eventName + tournamentSaveExt);
 			writer.println("teamsList=");
 		}catch(FileNotFoundException ex){

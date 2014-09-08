@@ -5,17 +5,23 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
-
 import userinterface.ConsoleWindow;
+import userinterface.CustomListModel;
 
 /**
- * JTable that stores a list of FTC teams. Can load a list of teams from a text file.
- * @author Jonathan
+ * Stores a list of FTC teams. Also contains a JTable to display the teams in the list.
+ * There is also the capability to load a list of teams from a file, and each team from
+ * its own respective file. Teams can be added to or removed from the list, as well as 
+ * their individual data edited.
+ * 
+ * <blockquote><b>teams</b>: A private ArrayList containing all the teams on the list.<br>
+ * <b>table</b>: A public JTable that stores a list of FTC teams.<br>
+ * <b>teamsListFilePath</b>: The file path of the save files for the teams.<br>
+ * <b>teamsListFileExt</b>: The default file extension for team save files. Currently empty.<br> 
+ * </blockquote>
+
+ * @author Jonathan Thomas
  *
  */
 public class TeamsList {
@@ -31,7 +37,7 @@ public class TeamsList {
 	public ConsoleWindow cons = new ConsoleWindow();
 	
 	/**
-	 * Empty constructor.
+	 *
 	 */
 	public TeamsList(){
 		// Update the table once. It will be empty
@@ -40,7 +46,8 @@ public class TeamsList {
 	
 	/**
 	 * Creates a list of teams from an array.
-	 * @param teams
+	 * 
+	 * @param teams An array of Team objects that will populate the list.
 	 */
 	public TeamsList(Team[] teams){
 		// Add the teams into the list
@@ -50,8 +57,9 @@ public class TeamsList {
 	}
 	
 	/**
-	 * Set the console window for console output. Takes a console window object as input.
-	 * @param window
+	 * Set the console window for console output.
+	 * 
+	 * @param window The ConsoleWindow object that you want to add.
 	 */
 	public void setConsoleWindow(ConsoleWindow window){
 		cons = window;
@@ -59,6 +67,18 @@ public class TeamsList {
 	
 	/**
 	 * Loads a list of teams from a text file.
+	 * 
+	 * <p>The files that this method reads are just lists of filenames for team saves. The inside
+	 * of one file might look like this:
+	 * <blockquote>4251_Cougars<br>
+	 * 5029_Powerstackers<br>
+	 * 5501_DRSS Enterprise<br></blockquote>
+	 * 
+	 * The strings you see are the file names for teams that are stored in the program's library.
+	 * This method will look for those teams, and load them into Team objects, which it will use 
+	 * to populate the list.
+	 * 
+	 * @param eventFileName The name of the file storing your list of teams.
 	 */
 	public void loadFromFile(String eventFileName) throws FileNotFoundException{
 		// Create a File object
@@ -94,12 +114,12 @@ public class TeamsList {
 			cons.printConsoleLine("No teams found in " + eventFileName);
 		
 		// Print a message to the console to inform the user of what went on
-		cons.printConsoleLine(((teams.size() == totalFiles)? "[+]" : "[!]") + " Loaded " +
-				teams.size() + "/" + totalFiles + " succesfully.");
+		cons.printConsoleLine(" Loaded " + teams.size() + "/" + totalFiles + " succesfully.");
 	}
 	
 	/**
-	 * Updates the visual JTable with the teams currently in the list.
+	 * Updates the visual JTable with the teams currently in the list. This method must be called
+	 * every time there is a change to the list.
 	 */
 	private void refreshTeamsTable(){
 		// Create arrays to hold the column headers and the team's information
@@ -114,7 +134,7 @@ public class TeamsList {
 		}
 		
 		// Create a new model with the information, and add it to the table
-		TeamsListModel model = new TeamsListModel(teamsList, columnHeaders);
+		CustomListModel model = new CustomListModel(teamsList, columnHeaders);
 		table.setModel(model);
 		
 		// Set the width of the columns to their preferred widths
@@ -131,7 +151,10 @@ public class TeamsList {
 	
 	/**
 	 * Add a team to the list.
-	 * @param team
+	 * <p>This method adds a team to the list, prints the team's information to the console,
+	 * and refreshes the JTable.
+	 * 
+	 * @param team The Team object that you would like to add.
 	 */
 	public void addTeam(Team team){
 		teams.add(team);
@@ -140,9 +163,11 @@ public class TeamsList {
 	}
 	
 	/**
-	 * Remove the team at the specified index. Throws exception if index does not exist.
-	 * @throws IndexOutOfBoundsException
-	 * @param index
+	 * Remove the team at the specified index from the list, prints a message to the console,
+	 * and refreshes the JTable. If the provided index does not exist, throw an exception.
+	 * 
+	 * @throws IndexOutOfBoundsException Thrown if the index is out of the bounds of the ArrayList.
+	 * @param index The index of the team you would like to remove.
 	 */
 	public void removeTeam(int index) throws IndexOutOfBoundsException{
 		if(index < 0 || index > teams.size() - 1)
@@ -154,32 +179,42 @@ public class TeamsList {
 	
 	/**
 	 * Return the list of teams itself.
-	 * @return
+	 * 
+	 * @return An ArrayList containing all the teams on the list.
 	 */
 	public ArrayList<Team> getList(){
 		return teams;
 	}
 	
 	/**
-	 * Get the selected index of the table, return -1 if no row is selected
-	 * @return
+	 * Returns the selected index of the JTable. If no row is selected, return -1.
+	 * 
+	 * @return The selected row of the JTable.
 	 */
 	public int getSelectedIndex(){
 		return table.getSelectedRow();
 	}
 	
 	/**
-	 * Returns the team at the index
-	 * @param index
-	 * @return
+	 * Returns the team at the specified index in the list. If the index does not exist, throws an exception.
+	 * 
+	 * @param index The position of the team that you want.
+	 * @return The Team object at that position.
 	 */
 	public Team getTeam(int index){
 		return teams.get(index);
 	}
 	
 	/**
-	 * Returns a formatted string with a list of teams.
-	 * @return
+	 * Returns a formatted string with a list of teams. Prints the total number of teams, and then a list of team
+	 * names and numbers. This method is mostly useful for printing the contents of the list to the console. An example:
+	 * <blockquote>
+	 * List contains 2 teams:
+	 * <blockquote>5029 : Powerstackers<br>
+	 * 4251 : Cougars</blockquote>
+	 * </blockquote>
+	 * 
+	 * @return A formatted string with the amount of teams, and a list of their names and numbers.
 	 */
 	public String getTeamsListString(){
 		StringBuilder builder = new StringBuilder();
@@ -190,75 +225,17 @@ public class TeamsList {
 	}
 	
 	/**
+	 * An exception class that is thrown whenever the index of an array is out-of-bounds.
 	 * 
-	 * @author Jonathan
-	 *
+	 * @author Jonathan Thomas
 	 */
 	public class IndexOutOfBoundsException extends Exception{
-		
+		private static final long serialVersionUID = 1L;	
 	}
 	
 	/**
-	 * A custom ListModel to create a new JTable from the information in the teams list.
-	 * @author Jonathan Thomas
-	 *
+	 * Save all the teams in the list to their respective files.
 	 */
-	private class TeamsListModel extends AbstractTableModel{
-
-		// A list of Object arrays that will store the team name and number in String form.
-		ArrayList<Object[]> list;
-		
-		// An array of Strings to store the column headers that will be displayed on the JScrollPane.
-		String[] columnHeaders;
-		
-		/**
-		 * Constructor that takes a list of team name and number Strings, and a list of column title Strings.
-		 * @param list
-		 * @param columnHeaders
-		 */
-		public TeamsListModel(Object[][] list, String[] columnHeaders){
-			this.columnHeaders = columnHeaders;
-			this.list = new ArrayList<Object[]>();
-			for(int i = 0; i < list.length; i++){
-				this.list.add(list[i]);
-			}
-		}
-		
-		/**
-		 * Return the number of columns.
-		 */
-		@Override
-		public int getColumnCount() {
-			return columnHeaders.length;
-		}
-
-		/**
-		 * Return the number of rows.
-		 */
-		@Override
-		public int getRowCount() {
-			return list.size();
-		}
-
-		/**
-		 * Return the team name and number stored at said position in the JTable
-		 * @param rowIndex, columnIndex
-		 */
-		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			return list.get(rowIndex)[columnIndex];
-		}
-		
-		/**
-		 * Return the column header at said index.
-		 * @param index
-		 */
-		public String getColumnName(int index){
-			return columnHeaders[index];
-		}
-
-	}
-	
 	public void saveAllTeams(){
 		for(int i = 0; i < teams.size(); i++)
 			teams.get(i).saveTeamInfo();
@@ -266,7 +243,7 @@ public class TeamsList {
 	
 	public static void main(String args[]){
 		TeamsList list = new TeamsList();
-		//list.cons.setVisible(true);
+		list.cons.setVisible(true);
 		try {
 			list.loadFromFile("LIST1");
 		} catch (FileNotFoundException e) {

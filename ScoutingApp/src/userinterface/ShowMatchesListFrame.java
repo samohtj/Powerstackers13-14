@@ -15,6 +15,11 @@ import teams.Team;
 import matches.Match;
 import matches.MatchesList;
 
+/**
+ * Creates a list of standard FIRST Tech Challenge matches. 
+ * @author Jonathan Thomas
+ *
+ */
 public class ShowMatchesListFrame extends JPanel{
 	
 	// I had to add this, or Eclipse would be mad at me

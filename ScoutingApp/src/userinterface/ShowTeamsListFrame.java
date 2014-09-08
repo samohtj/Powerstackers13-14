@@ -1,12 +1,10 @@
 package userinterface;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -16,7 +14,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.border.TitledBorder;
 
 import matches.Match;
@@ -25,7 +22,7 @@ import teams.Team;
 
 /**
  * A JPanel to visually display a list of FTC teams.
- * @author Jonathan
+ * @author Jonathan Thomas
  *
  */
 public class ShowTeamsListFrame extends JPanel{
@@ -86,10 +83,17 @@ public class ShowTeamsListFrame extends JPanel{
 		
 	}
 	
+	/**
+	 * Set the console output window for the panel
+	 * @param console
+	 */
 	public void setConsoleWindow(ConsoleWindow console){
 		list.setConsoleWindow(console);
 	}
 	
+	/**
+	 * Show a dialog used to add teams to the list.
+	 */
 	public void showAddTeamDialog(){
 		JTextField teamName = new JTextField(10);
 		JTextField teamNumber = new JTextField(5);
@@ -106,8 +110,10 @@ public class ShowTeamsListFrame extends JPanel{
 			list.addTeam(new Team(Integer.parseInt(teamNumber.getText()), teamName.getText()));
 	}
 	
+	/**
+	 * Remove the currently selected team from the list. Selection is based on the selected row of the JList. If no team is selected, the method does nothing.
+	 */
 	public void deleteTeam(){
-		//list.cons.printConsoleLine("Entered 'delete somebody' method");
 		try{
 			list.cons.printConsoleLine("Deleting team " + list.getTeam(list.getSelectedIndex()));
 			list.removeTeam(list.getSelectedIndex());
@@ -117,8 +123,17 @@ public class ShowTeamsListFrame extends JPanel{
 	}
 	
 	/**
+	 * Edit the currently selected team's information. Selection is based on the selected row of the JList. If no team is selected, the method does nothing.
+	 * <p>THIS METHOD IS A WIP
+	 */
+	public void editTeam(){
+		
+	}
+	
+	/**
 	 * Return the list of teams.
-	 * @return
+	 * 
+	 * @return		A TeamsList object containing the current active list of teams
 	 */
 	public TeamsList getList(){
 		return list;
@@ -144,12 +159,6 @@ public class ShowTeamsListFrame extends JPanel{
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
-		
-		//teamsFrame.list.cons.setVisible(true);
-		
-		//teamsFrame.showAddTeamDialog();
-		
-		
 	}
 
 }

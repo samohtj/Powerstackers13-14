@@ -5,14 +5,33 @@ import java.awt.Component;
 import java.awt.Font;
 import java.util.ArrayList;
 
-import javax.swing.JLabel;
 import javax.swing.JTable;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import userinterface.CustomListModel;
+
 /**
- * JTable that stores a list of matches. Can load a list of matches from a text file.
- * @author Jonathan
+ * Create a list of Match objects. Teams can be added to the list, as well
+ * as removed from it. Their information can also be directly edited. The 
+ * class stores the teams in an ArrayList object, which itself populates a
+ * JTable element. The JTable can be displayed in any Swing application.
+ * <blockquote><b>list</b>: The list is the ArrayList object containing the teams 
+ * participating in the match. The teams in the list can be edited with the
+ * MatchList class' methods.
+ * <p><b>table</b>: The table is the JTable object that displays all the teams
+ * in the list. The table has three columns:
+ * <ul>
+ * <li><b>Match #</b>: The number of the match.
+ * <li><b>Red Score</b>: The final score of the red alliance in that match.
+ * <li><b>Blue Score</b>: The final score of the blue alliance in that match.
+ * </ul>
+ * </blockquote>
+ * 
+ * The class also contains methods for adding and removing teams, as well as a
+ * custom renderer class to change the colors of the rows in the table based on
+ * the winner of the match. The column will change to the color of the winning alliance.
+ * 
+ * @author Jonathan Thomas
  *
  */
 public class MatchesList {
@@ -29,8 +48,10 @@ public class MatchesList {
 	}
 	
 	/**
-	 * Constructor that sets the renderer for the JTable to the custom renderer, and adds all the matches in the parameter array to the list.
-	 * @param matches
+	 * Constructor that sets the renderer for the JTable to the custom renderer, and adds all
+	 * the matches in the parameter array to the list.
+	 * 
+	 * @param matches An array of Match objects that will populate the list with matches.
 	 */
 	public MatchesList(Match[] matches){
 		table.setDefaultRenderer(Object.class, new MatchTableCellRederer());
@@ -41,14 +62,17 @@ public class MatchesList {
 	}
 	
 	/**
-	 * Load a list of matches from a text file (empty).
+	 * Load a list of matches from a text file.
+	 * <p> This method is a WIP
 	 */
 	public void loadFromFile(){
 		
 	}
 	
 	/**
-	 * Update the JTable with the matches currently in the list.
+	 * This method reloads all the matches in the <b>list</b> into the <b>table</b>.
+	 * It must be called every time a change is made to the list.
+	 * 
 	 */
 	private void refreshMatchesTable(){
 		// A String array of column headers, and an Object two-dimensional array of match numbers and scores.
@@ -67,7 +91,7 @@ public class MatchesList {
 		}
 		
 		// Create a new ListModel from the data we just collected and add it to the table
-		MatchesListModel model = new MatchesListModel(matchesList, columnHeaders, rowColors);
+		CustomListModel model = new CustomListModel(matchesList, columnHeaders, rowColors);
 		table.setModel(model);
 		/*
 		table.getColumnModel().getColumn(0).setMinWidth(25);
@@ -84,7 +108,8 @@ public class MatchesList {
 	
 	/**
 	 * Add a match to the list.
-	 * @param match
+	 * 
+	 * @param match The Match object that you want to add.
 	 */
 	public void addMatch(Match match){
 		list.add(match);
@@ -93,7 +118,8 @@ public class MatchesList {
 	
 	/**
 	 * Remove a match from the list.
-	 * @param index
+	 * 
+	 * @param index The position of the Match in the list that you want to remove.
 	 */
 	public void removeMatch(int index){
 		list.remove(index);
@@ -102,72 +128,47 @@ public class MatchesList {
 	
 	/**
 	 * Return the match at the specified position in the list.
-	 * @param index
-	 * @return
+	 * 
+	 * @param index The position in the list of the match that you want.
+	 * @return A Match object.
 	 */
 	public Match getMatchAt(int index){
 		return list.get(index);
 	}
 	
+	/**
+	 * Gets the match that is currently selected. Selection is based on the selected row of the table.
+	 * 
+	 * @return The match that is currently selected.
+	 */
 	public int getSelectedMatch(){
 		return (table.getSelectedRow() == -1)? 0 : table.getSelectedRow();
 	}
 	
+	/**
+	 * Return the whole list of teams.
+	 * 
+	 * @return An ArrayList containing all the teams on the list.
+	 */
 	public ArrayList<Match> getList(){
 		return list;
 	}
 	
-	private class MatchesListModel extends AbstractTableModel{
-		
-		ArrayList<Object[]> list;
-		String[] columnHeaders;
-		ArrayList<Color> rowColors = new ArrayList<Color>();
-		
-		public MatchesListModel(Object[][] list, String[] columnHeaders, ArrayList<Color> rowColors){
-			this.columnHeaders = columnHeaders;
-			this.list = new ArrayList<Object[]>();
-			for(int i = 0; i < list.length; i++){
-				this.list.add(list[i]);
-				this.rowColors = rowColors;
-			}	
-		}
-		
-		public void setRowColor(int index, Color color){
-			rowColors.set(index, color);
-		}
-		
-		public Color getRowColor(int index){
-			return rowColors.get(index);
-		}
-
-		@Override
-		public int getColumnCount() {
-			// TODO Auto-generated method stub
-			return columnHeaders.length;
-		}
-
-		@Override
-		public int getRowCount() {
-			// TODO Auto-generated method stub
-			return list.size();
-		}
-
-		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			// TODO Auto-generated method stub
-			return list.get(rowIndex)[columnIndex];
-		}
-		
-		public String getColumnName(int index){
-			return columnHeaders[index];
-		}
-	}
-	
+	/**
+	 * This class is a custom renderer for the table. It changes the color of the row based on the winner
+	 * of the match. The color changes to match the color of the winning alliance. The class also 
+	 * 
+	 * @author Jonathan Thomas
+	 */
 	static class MatchTableCellRederer extends DefaultTableCellRenderer {
+	    /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
-	    @Override
+		@Override
 	    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-	    	MatchesListModel model = (MatchesListModel) table.getModel();
+	    	CustomListModel model = (CustomListModel) table.getModel();
 	        Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 	        component.setBackground(model.getRowColor(row));
 	        component.setForeground(Color.WHITE);

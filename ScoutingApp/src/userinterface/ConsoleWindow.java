@@ -10,7 +10,16 @@ import java.util.Date;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 
+/**
+ * This class is a JFrame that displays console output from the application.
+ * 
+ * @author Jonathan Thomas
+ */
 public class ConsoleWindow extends JFrame{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	// Create a new text area. Initialize it with an opening message and the run date.
 	private TextArea text = new TextArea("**********************************\n" + 
@@ -28,15 +37,7 @@ public class ConsoleWindow extends JFrame{
 	 */
 	public ConsoleWindow(){
 		
-		checkboxEnableConsole.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(checkboxEnableConsole.isSelected())
-					setVisible(true);
-				else
-					setVisible(false);				
-			}
-		});
+		checkboxEnableConsole.addActionListener(new ShowConsoleCheckboxActionListener());
 		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setSize(500, 400);
@@ -48,12 +49,40 @@ public class ConsoleWindow extends JFrame{
 		add(text);
 	}
 	
+	/**
+	 * Print a line of text to the console.
+	 * 
+	 * @param text The text you want to print.
+	 */
 	public void printConsoleLine(String text){
 		this.text.append("\n" + text);
 	}
 	
+	/**
+	 * Set the size of the console window.
+	 * 
+	 * @param x
+	 * @param y
+	 */
 	public void setConsoleSize(int x, int y){
 		setSize(x,y);
+	}
+	
+	/**
+	 * This class is an ActionListener class that, when activated, shows or hided the console window,
+	 * depending on whether the checkboxEnableConsole is selected or not.
+	 * 
+	 * @author Jonathan Thomas
+	 *
+	 */
+	public class ShowConsoleCheckboxActionListener implements ActionListener{
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(checkboxEnableConsole.isSelected())
+				setVisible(true);
+			else
+				setVisible(false);				
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -64,5 +93,4 @@ public class ConsoleWindow extends JFrame{
 		console.printConsoleLine("So is this!!!");
 
 	}
-
 }
