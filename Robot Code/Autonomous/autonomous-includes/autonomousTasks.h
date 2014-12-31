@@ -30,7 +30,7 @@ long startEncoderPos = 0;
 void allMotorsTo(int i){
 	motor[mDriveLeft] 	= i;
 	motor[mDriveRight] 	= i;
-	motor[mBsAngle] 		= i;
+	motor[mBsAngle] 	= i;
 	motor[mBsConveyor] 	= i;
 	motor[mFlagRaise1] 	= i;
 	motor[mFlagRaise2] 	= i;
