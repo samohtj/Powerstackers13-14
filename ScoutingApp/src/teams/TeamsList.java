@@ -201,7 +201,7 @@ public class TeamsList {
 	 * @param index The position of the team that you want.
 	 * @return The Team object at that position.
 	 */
-	public Team getTeam(int index){
+	public Team getTeamAt(int index){
 		return teams.get(index);
 	}
 	

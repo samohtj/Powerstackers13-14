@@ -69,7 +69,7 @@ public class ConsoleWindow extends JFrame{
 	}
 	
 	/**
-	 * This class is an ActionListener class that, when activated, shows or hided the console window,
+	 * This class is an ActionListener class that, when activated, shows or hides the console window,
 	 * depending on whether the checkboxEnableConsole is selected or not.
 	 * 
 	 * @author Jonathan Thomas

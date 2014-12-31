@@ -48,11 +48,12 @@ public class Team {
 	private int qp = 0;
 	private int rp = 0;
 	
-	// Average points earned in a match, and the total number of matches played
-	@SuppressWarnings("unused")
-	private int averagePoints = 0;
-	@SuppressWarnings("unused")
+	// Total points earned and total matches played. Used to calculate the average points a team earns.
+	private int totalPoints = 0;
 	private int totalMatches = 0;
+	
+	// A short description of the team
+	private String description = "";
 	
 	private ArrayList<Award> awards = new ArrayList<Award>();
 	
@@ -308,4 +309,45 @@ public class Team {
 		team.addAwards(Award.COMPASS_AWARD);
 		System.out.println(team.getAwardsList()[0]);
 	}
+	
+	/**
+	 * Add 1 match to the total matches played, and add the specified number of points to the team's total.
+	 * This helps in calculating the team's average score.
+	 * 
+	 * @param points
+	 */
+	public void addToAveragePoints(int points){
+		totalMatches++;
+		totalPoints += points;		
+	}
+
+	/**
+	 * Calculate the team's average score through all matches played.
+	 * 
+	 * @return The team's average score.
+	 */
+	public int getAverageScore() {
+		if(totalMatches == 0)
+			return 0;
+		else
+			return (int) totalPoints / totalMatches;
+	}
+	
+	/**
+	 * Set the team's short description.
+	 * @param description
+	 */
+	public void setDescription(String description){
+		this.description = description;
+	}
+	
+	/**
+	 * @return The team's short description.
+	 */
+	public String getDescription(){
+		return description;
+	}
+	
+	
+	
 }

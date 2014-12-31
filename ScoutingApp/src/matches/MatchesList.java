@@ -87,7 +87,14 @@ public class MatchesList {
 			String[] matchData = {Integer.toString(list.get(i).getMatchNumber()), Integer.toString(list.get(i).getRedFinalScore()),
 					Integer.toString(list.get(i).getBlueFinalScore())};
 			matchesList[i] = matchData;
-			rowColors.add((list.get(i).getWinner() == Match.RED_WINS)? Color.RED : Color.BLUE);
+			//rowColors.add((list.get(i).getWinner() == Match.RED_WINS)? Color.RED : Color.BLUE);
+			if(list.get(i).getWinner() == Match.RED_WINS){
+				rowColors.add((table.getSelectedRow() == i)? Color.PINK : Color.RED);
+				System.out.println("Selected row: " + table.getSelectedRow()  + "\nIndex: " + i);
+			}else{
+				rowColors.add((table.getSelectedRow() == i)? Color.CYAN : Color.BLUE);
+				System.out.println("Selected row: " + table.getSelectedRow()  + "\nIndex: " + i);
+			}
 		}
 		
 		// Create a new ListModel from the data we just collected and add it to the table
@@ -132,7 +139,7 @@ public class MatchesList {
 	 * @param index The position in the list of the match that you want.
 	 * @return A Match object.
 	 */
-	public Match getMatchAt(int index){
+	public Match getMatchAt(int index) throws IndexOutOfBoundsException{
 		return list.get(index);
 	}
 	

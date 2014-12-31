@@ -1,22 +1,26 @@
 package userinterface;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 
 import matches.Match;
+import matches.MatchesList;
 import teams.Team;
 
+/**
+ * An application for storing, viewing, and tracking information about FIRST Tech Challenge
+ * teams and matches. This application stores relevant data on file, and can load and display
+ * that information. Users can also enter the data themselves and add it to the archive.
+ * The application has planned support for many FTC games, and can track across multiple events
+ * and seasons.
+ * 
+ * @author Jonathan Thomas
+ */
 public class ScoutingApp extends JFrame{
 	
 	/**
@@ -24,68 +28,31 @@ public class ScoutingApp extends JFrame{
 	 */
 	private static final long serialVersionUID = 1L;
 
-	ConsoleWindow console = new ConsoleWindow();
+	private ConsoleWindow console = new ConsoleWindow();
 	
 	/* 
 	 * MENU BAR
 	 */
-	// Main menu bar
-	JMenuBar menuBar = new JMenuBar();
+	private MenuBar menuBar = new MenuBar();
 	
-	// Sub-menus
-	JMenu menuFile = new JMenu("File");
-	JMenu menuEdit = new JMenu("Edit");
-	JMenu menuTeams = new JMenu("Teams");
-	JMenu menuMatches = new JMenu("Matches");
-	JMenu menuView = new JMenu("View");
-	
-	// Items for the TEAMS menu
-	JMenuItem addTeamMenuItem = new JMenuItem("Add Team");
-	JMenuItem removeTeamMenuItem = new JMenuItem("Remove Team");
-	JMenuItem editTeamMenuItem = new JMenuItem("Edit Team");
-	
-	// Items for the VIEW menu
-	JCheckBoxMenuItem showConsoleMenuItem = new JCheckBoxMenuItem("Show Console");
 	
 	/*
 	 *PANELS 
 	 */
-	JPanel teamPanel = new JPanel(new GridLayout(1, 2));
-	JPanel matchPanel = new JPanel(new GridLayout(1, 2));
+	private JPanel teamPanel = new JPanel(new GridLayout(1, 2));
+	private JPanel matchPanel = new JPanel(new GridLayout(1, 2));
 
-	ShowTeamsListFrame teamsListPanel = new ShowTeamsListFrame();
-	ShowMatchesListFrame matchesListPanel = new ShowMatchesListFrame();
+	private TeamsListPanel teamsListPanel = new TeamsListPanel();
+	private MatchesListPanel matchesListPanel = new MatchesListPanel();
 	
-	//ShowMatchFrame matchInfoPanel = new ShowMatchFrame(matchesListPanel.list.getMatchAt(matchesListPanel.list.getSelectedMatch()));
-	
+	/**
+	 * Creates a new ScoutingApp window. Loads all relevant information from file and dislpays it.
+	 */
 	public ScoutingApp(){
 		// Add menu items to their respective menus
 		
 		// Create listeners for the menu items in the TEAMS menu
-		addTeamMenuItem.addActionListener(new ActionListener(){ @Override public void actionPerformed(ActionEvent e) {teamsListPanel.showAddTeamDialog();}});
-		removeTeamMenuItem.addActionListener(new ActionListener(){@Override public void actionPerformed(ActionEvent e) {teamsListPanel.deleteTeam();}});
-		
-	
-		// Create a new private action listener for the Show Console option that shows the console window or hides it,
-		// based on whether the checkbox is selected
-		showConsoleMenuItem.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent ev) {
-				if(showConsoleMenuItem.isSelected())
-					console.setVisible(true);
-				else
-					console.setVisible(false);
-			}
-		});
-		menuView.add(showConsoleMenuItem);
-		
-		// Add the menus to the menu bar
-		menuBar.add(menuFile);
-		menuBar.add(menuEdit);
-		menuBar.add(menuTeams);
-		menuBar.add(menuMatches);
-		menuBar.add(menuView);
-		add(menuBar, BorderLayout.NORTH);
+		setMenuBarFunctions();
 		
 		// Add the main con
 		teamPanel.add(teamsListPanel);
@@ -94,6 +61,7 @@ public class ScoutingApp extends JFrame{
 		add(teamPanel, BorderLayout.WEST);
 		add(matchPanel, BorderLayout.EAST);
 		//add(console.checkboxEnableConsole, BorderLayout.SOUTH);
+		add(menuBar, BorderLayout.NORTH);
 		
 		teamsListPanel.setConsoleWindow(console);
 		
@@ -106,6 +74,38 @@ public class ScoutingApp extends JFrame{
 		setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
 	}
 	
+	/**
+	 * Set functions for the menu bar options. Could be combined with constructor, but I'll figure it out later.
+	 */
+	private void setMenuBarFunctions(){
+		menuBar.addTeamMenuItem.addActionListener(new ActionListener(){ 
+			@Override public void actionPerformed(ActionEvent e) {
+				teamsListPanel.showAddTeamDialog();
+			}
+		});
+		
+		menuBar.removeTeamMenuItem.addActionListener(new ActionListener(){
+			@Override public void actionPerformed(ActionEvent e) {
+				teamsListPanel.deleteTeam();
+			}
+		});
+		
+		menuBar.showConsoleMenuItem.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent ev) {
+				if(menuBar.showConsoleMenuItem.isSelected())
+					console.setVisible(true);
+				else
+					console.setVisible(false);
+			}
+		});
+	}
+	
+	/**
+	 * Set the visibility of the console output window.
+	 * 
+	 * @param vis
+	 */
 	public void setConsoleVisible(boolean vis){
 		console.setVisible(vis);
 	}
@@ -114,28 +114,21 @@ public class ScoutingApp extends JFrame{
 		ScoutingApp frame = new ScoutingApp();
 		frame.console.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		
-		Team[] teamsArray = new Team[4];
-		teamsArray[Match.RED_1] = new Team(5029, "Powerstackers");
-		teamsArray[Match.RED_2] = new Team(4251, "Cougar Robotics");
-		teamsArray[Match.BLUE_1] = new Team(5501, "USS Enterprise");
-		teamsArray[Match.BLUE_2] = new Team(5035, "Some random team");
+		Team[] teamsArray = {new Team(5029, "Powerstackers"), new Team(4251, "Cougar Robotics"), 
+				new Team(5501, "USS Enterprise"), new Team(5035, "Some random team")};
+
+		Match[] matchesArray = {new Match(teamsArray, Match.MATCHTYPE_QUALIFICATION, 1), 
+				new Match(teamsArray, Match.MATCHTYPE_QUALIFICATION, 2)};
 		
-		Match match1 = new Match(teamsArray, Match.MATCHTYPE_QUALIFICATION, 1);
-		match1.setRedScore(50);
-		Match match2 = new Match(teamsArray, Match.MATCHTYPE_QUALIFICATION, 2);
-		match2.setRedScore(60);
-		match2.setBlueScore(67);
+		matchesArray[0].setRedScore(50);
 		
+		matchesArray[1].setRedScore(60);
+		matchesArray[1].setBlueScore(67);
 		
-		frame.matchesListPanel.list.addMatch(match1);
-		frame.matchesListPanel.list.addMatch(match2);
+		frame.matchesListPanel.list = new MatchesList(matchesArray);
 		
 		for(int i = 0; i < teamsArray.length; i++){
 			frame.teamsListPanel.getList().addTeam(teamsArray[i]);
 		}
-		
-		
-		
 	}
-
 }
