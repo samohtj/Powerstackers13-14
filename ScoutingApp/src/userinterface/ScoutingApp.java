@@ -99,6 +99,12 @@ public class ScoutingApp extends JFrame{
 					console.setVisible(false);
 			}
 		});
+		
+		menuBar.addMatchMenuItem.addActionListener(new ActionListener(){
+			@Override public void actionPerformed(ActionEvent ev){
+				matchesListPanel.showAddMatchDialog();
+			}
+		});
 	}
 	
 	/**

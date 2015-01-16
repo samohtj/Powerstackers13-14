@@ -21,13 +21,18 @@ public class ConsoleWindow extends JFrame{
 	 */
 	private static final long serialVersionUID = 1L;
 
+	
+    
+    
+    
+	
 	// Create a new text area. Initialize it with an opening message and the run date.
-	private TextArea text = new TextArea("**********************************\n" + 
-										 "* FTC SCOUTING TRACKER APPLICATION\n" + 
-										 "* Developed by FTC Team # 5029\n" + 
-										 "* powerstackersftc.weebly.com\n" + 
-										 "**********************************\n" + 
-										 new Date().toString());
+	private TextArea text = new TextArea("SCOUTER  Copyright (C) 2015 Powerstackers\n" + 
+										 "This program comes with ABSOLUTELY NO WARRANTY;\n" + 
+										 "This is free software, and you are welcome to redistribute it\n" + 
+										 "under certain conditions; see LICENSE.txt for details.\n" + 
+										 "powerstackersftc.com\n"+
+										 new Date().toString()+"\n");
 	
 	// Create a check box that can be used to enable and disable the console window
 	public JCheckBox checkboxEnableConsole = new JCheckBox("Show console");
@@ -45,7 +50,7 @@ public class ConsoleWindow extends JFrame{
 		
 		text.setEditable(false);
 		text.setBackground(Color.WHITE);
-		text.setFont(new Font("Courier", Font.PLAIN, 12));
+		text.setFont(new Font("Consolas", Font.PLAIN, 12));
 		add(text);
 	}
 	

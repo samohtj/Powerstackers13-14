@@ -132,4 +132,9 @@ public class MatchesListPanel extends JPanel{
 		framee.setVisible(true);
 		framee.setExtendedState(framee.getExtendedState() | JFrame.MAXIMIZED_BOTH);
 	}
+
+	public void showAddMatchDialog() {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -16,6 +16,16 @@ import userinterface.ConsoleWindow;
  *
  */
 public class Match {
+		// Constants to identify alliance members, match types
+	public static final int RED_1 	= 0;
+	public static final int RED_2 	= 1;
+	public static final int BLUE_1 	= 2;
+	public static final int BLUE_2 	= 3;
+	public static final boolean MATCHTYPE_QUALIFICATION = true;
+	public static final boolean MATCHTYPE_FINAL 		= false;
+	public static final int RED_WINS 	= 1;
+	public static final int BLUE_WINS 	= 2;
+	
 	// The console window to be used for console output by this object
 	ConsoleWindow cons = new ConsoleWindow();
 
@@ -24,23 +34,13 @@ public class Match {
 	private int matchNumber;
 	private String matchField = "1A";
 	private ArrayList<Team> matchTeams = new ArrayList<Team>();
-	private boolean type = true;
-	
-	// Constants to identify alliance members, match types
-	public static final int RED_1 = 0;
-	public static final int RED_2 = 1;
-	public static final int BLUE_1 = 2;
-	public static final int BLUE_2 = 3;
-	public static final boolean MATCHTYPE_QUALIFICATION = true;
-	public static final boolean MATCHTYPE_FINAL = false;
-	public static final int RED_WINS = 1;
-	public static final int BLUE_WINS = 2;
+	private boolean type = MATCHTYPE_QUALIFICATION;	// Default to qualification match type
 	
 	// Rend and blue scores and penalties
-	private int redScore = 0;
-	private int blueScore = 0;
-	private int redPenalties = 0;
-	private int bluePenalties = 0;
+	private int redScore 		= 0;
+	private int blueScore 		= 0;
+	private int redPenalties 	= 0;
+	private int bluePenalties 	= 0;
 	
 	/**
 	 * Empty constructor that does not set anything. Use the parseSaveString method to fill the object with data.
@@ -55,12 +55,12 @@ public class Match {
 	 * @param matchTeams An array of Team objects. This array will populate the match with teams.
 	 */
 	public Match(Team[] matchTeams){
-		this.type = MATCHTYPE_QUALIFICATION;
-		this.matchNumber = 1;
+		this.type = MATCHTYPE_QUALIFICATION;	// Make sure the match type is set to qualification
+		this.matchNumber = 1;					// Default the match number to 1
 		try {
-			setTeams(matchTeams);
-		} catch (TooManyTeamsException | TooFewTeamsException e) {
-				((TooManyTeamsException) e).showErrorMessage();
+			setTeams(matchTeams);				// Try to set the list of teams
+		} catch (TooManyTeamsException | TooFewTeamsException e) {	// The wrong number of teams was given
+				((TooManyTeamsException) e).showErrorMessage();		// Display an appropriate error message
 		}
 	}
 	
@@ -71,11 +71,11 @@ public class Match {
 	 * @param type Whether the match is Qualifying or Elimination. The Match class has static constants for use setting this parameter.
 	 */
 	public Match(Team[] matchTeams, boolean type){
-		this.type = type;
-		this.matchNumber = 1;
+		this.type = type;		// Set the match type to the given type
+		this.matchNumber = 1;	// Default the match number to 1
 		try {
-			setTeams(matchTeams);
-		} catch (TooManyTeamsException | TooFewTeamsException e) {
+			setTeams(matchTeams);// Try to set the number of teams
+		} catch (TooManyTeamsException | TooFewTeamsException e) {	// The wrong number of teams was given
 			((TooManyTeamsException) e).showErrorMessage();
 		}
 	}
@@ -88,12 +88,12 @@ public class Match {
 	 * @param matchNumber The number identifier for the match.
 	 */
 	public Match(Team[] matchTeams, boolean type, int matchNumber){
-		this.type = type;
-		this.matchNumber = matchNumber;
+		this.type = type;				// Set the match type to the given type
+		this.matchNumber = matchNumber;	// Set the match number to the given number
 		try {
-			setTeams(matchTeams);
-		} catch (TooManyTeamsException | TooFewTeamsException e) {
-			((TooManyTeamsException) e).showErrorMessage();
+			setTeams(matchTeams);		// Try to set the list of teams
+		} catch (TooManyTeamsException | TooFewTeamsException e) {	// The wrong number of teams was given
+			((TooManyTeamsException) e).showErrorMessage();			// Show an appropriate error message
 		}
 	}
 	
@@ -153,11 +153,13 @@ public class Match {
 	 * @throws TooFewTeamsException Thrown if the array parameter contains too few teams (minimum 4)
 	 */
 	public void setTeams(Team[] matchTeams) throws TooManyTeamsException, TooFewTeamsException{
+		// If the wrong number of teams is given (i.e., not exactly 4) throw an exception
 		if(matchTeams.length > 4)
 			throw new TooManyTeamsException();
 		if(matchTeams.length < 4)
 			throw new TooFewTeamsException();
 		
+		// Load the given teams into the list
 		for(int i = 0; i < 4; i++)
 			this.matchTeams.add(matchTeams[i]);	
 	}
@@ -363,15 +365,17 @@ public class Match {
 	public void parseSaveString(String saveString) throws SaveStringErrorException{
 		// This is where it would check the save string for errors
 		
-		String[] data = saveString.split("\\|");
-		matchField = data[0];
-		type = (data[1].equals("q"))? MATCHTYPE_QUALIFICATION : MATCHTYPE_FINAL;
-		redScore = Integer.parseInt(data[6]);
-		redPenalties = Integer.parseInt(data[7]);
-		blueScore = Integer.parseInt(data[8]);
-		bluePenalties = Integer.parseInt(data[9]);
+		String[] data = saveString.split("\\|");	// Split the string using the pipes (|) character as a regex
+		matchField = data[0];						// Set the field number to the first value loaded
+		type = (data[1].equals("q"))? MATCHTYPE_QUALIFICATION : MATCHTYPE_FINAL;	// Set the match type as given by the file
+		redScore = Integer.parseInt(data[6]);		// Load the red alliance score
+		redPenalties = Integer.parseInt(data[7]);	// Load the red alliance penalties
+		blueScore = Integer.parseInt(data[8]);		// Load the blue alliance score
+		bluePenalties = Integer.parseInt(data[9]);	// Load the blue alliance penalties
 		
 		// TEMPORARY
+		// Add four fake teams to the list
+		// Why????
 		matchTeams.add(new Team(1000));
 		matchTeams.add(new Team(1000));
 		matchTeams.add(new Team(1000));
@@ -386,7 +390,7 @@ public class Match {
 	 */
 	public class SaveStringErrorException extends Exception{
 		/**
-		 * 
+		 * We need this for some reason
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -406,7 +410,7 @@ public class Match {
 	 */
 	public class TooManyTeamsException extends Exception{
 		/**
-		 * 
+		 * We need this for some reason
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -427,7 +431,7 @@ public class Match {
 	 */
 	public class TooFewTeamsException extends Exception{
 		/**
-		 * 
+		 * We need this for some reason
 		 */
 		private static final long serialVersionUID = 1L;
 

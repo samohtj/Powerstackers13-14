@@ -33,8 +33,20 @@ public class MenuBar extends JMenuBar{
 	 * Found under <b>TEAMS-></b>
 	 */
 	public JMenuItem editTeamMenuItem = new JMenuItem("Edit Team");
+	
+	/*
+	 * 
+	 * MATCHES MENU
+	 * 
+	 */
 
-	// Items for the VIEW menu
+	public JMenuItem addMatchMenuItem = new JMenuItem("Add Match");
+	
+	/*
+	 * 
+	 * VIEW MENU
+	 * 
+	 */
 	/**
 	 * Found under <b>VIEW-></b>
 	 */
@@ -51,6 +63,8 @@ public class MenuBar extends JMenuBar{
 		menuTeams.add(addTeamMenuItem);
 		menuTeams.add(removeTeamMenuItem);
 		menuTeams.add(editTeamMenuItem);
+		
+		menuMatches.add(addMatchMenuItem);
 
 		menuView.add(showConsoleMenuItem);
 		
