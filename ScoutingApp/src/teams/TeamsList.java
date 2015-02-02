@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import javax.swing.JFrame;
 import javax.swing.JTable;
+
 import userinterface.ConsoleWindow;
 import userinterface.CustomListModel;
 
@@ -31,8 +33,8 @@ public class TeamsList {
 	// A JTable to visually display the list of teams
 	public JTable table = new JTable();
 
-	public static String teamsListFilePath = "data/teams/";
-	public static String teamsListFileExt = "";
+	public static transient String teamsListFilePath = "data/teams/";
+	public static transient String teamsListFileExt = ".txt";
 	
 	public ConsoleWindow cons = new ConsoleWindow();
 	
@@ -65,57 +67,7 @@ public class TeamsList {
 		cons = window;
 	}
 	
-	/**
-	 * Loads a list of teams from a text file.
-	 * 
-	 * <p>The files that this method reads are just lists of filenames for team saves. The inside
-	 * of one file might look like this:
-	 * <blockquote>4251_Cougars<br>
-	 * 5029_Powerstackers<br>
-	 * 5501_DRSS Enterprise<br></blockquote>
-	 * 
-	 * The strings you see are the file names for teams that are stored in the program's library.
-	 * This method will look for those teams, and load them into Team objects, which it will use 
-	 * to populate the list.
-	 * 
-	 * @param eventFileName The name of the file storing your list of teams.
-	 */
-	public void loadFromFile(String eventFileName) throws FileNotFoundException{
-		// Create a File object
-		File file = new File(teamsListFilePath + eventFileName);
-		if(!file.exists())
-			throw new FileNotFoundException();
-		
-		// Integer to store the total number of teams listed in the match file
-		int totalFiles = 0;
-		
-		// Create a Scanner object to read the file
-		@SuppressWarnings("resource")
-		Scanner in = new Scanner(file);
-		
-		// Read the file, and load a team file for each team listed in the match file
-		if(in.hasNext()){
-			cons.printConsoleLine("Teams found in " + eventFileName + ". Loading files:");
-			while(in.hasNext()){
-				// Create a String object to store the name of the team
-				String teamName = in.nextLine();
-
-				// If the file exists, load from it
-				// Otherwise, print an error message to the console
-				if(new File(Team.teamsDataPath + teamName + Team.teamsFileExt).exists()){
-					teams.add(new Team(new File(Team.teamsDataPath + teamName + Team.teamsFileExt)));
-					cons.printConsoleLine("\t" + teamName + " loaded successfully");
-				}else
-					cons.printConsoleLine("\tERROR: File \"" + teamName + "\" not found");
-				totalFiles++;
-			}
-		}else
-			// If the file is empty, print a message to the console
-			cons.printConsoleLine("No teams found in " + eventFileName);
-		
-		// Print a message to the console to inform the user of what went on
-		cons.printConsoleLine(" Loaded " + teams.size() + "/" + totalFiles + " succesfully.");
-	}
+	
 	
 	/**
 	 * Updates the visual JTable with the teams currently in the list. This method must be called
@@ -219,8 +171,8 @@ public class TeamsList {
 	public String getTeamsListString(){
 		StringBuilder builder = new StringBuilder();
 		builder.append("List contains " + teams.size() + ((teams.size() == 1)? " team:\n" : " teams:\n"));
-		for(int i = 0; i < teams.size(); i++)
-			builder.append("\t" + teams.get(i).toString() + "\n");
+		for(Team team: teams)
+			builder.append("\t" + team.toString() + "\n");
 		return builder.toString();
 	}
 	
@@ -237,20 +189,79 @@ public class TeamsList {
 	 * Save all the teams in the list to their respective files.
 	 */
 	public void saveAllTeams(){
-		for(int i = 0; i < teams.size(); i++)
-			teams.get(i).saveTeamInfo();
+		for(Team team: teams)
+			Team.save(team);
+	}
+	
+	/**
+	 * Loads a list of teams from a data file.
+	 * 
+	 * <p>The files that this method reads are just lists of filenames for team saves. The inside
+	 * of one file might look like this:
+	 * <blockquote>4251_Cougars<br>
+	 * 5029_Powerstackers<br>
+	 * 5501_DRSS Enterprise<br></blockquote>
+	 * 
+	 * The strings you see are the file names for teams that are stored in the program's library.
+	 * This method will look for those teams, and load them into Team objects, which it will use 
+	 * to populate the list.
+	 * 
+	 * @param eventFileName The name of the file storing your list of teams.
+	 */
+	public void loadFromFile(String eventFileName) throws FileNotFoundException{
+		// Create a File object
+		File file = new File(teamsListFilePath + eventFileName);
+		if(!file.exists())
+			throw new FileNotFoundException();
+		
+		// Integer to store the total number of teams listed in the match file
+		int totalFiles = 0;
+		
+		// Create a Scanner object to read the file
+		Scanner in = new Scanner(file);
+		
+		// Read the file, and load a team file for each team listed in the match file
+		if(in.hasNext()){
+			cons.printConsoleLine("Teams found in " + eventFileName + ". Loading files:");
+			while(in.hasNext()){
+				// Create a String object to store the name of the team
+				String teamName = in.nextLine();
+
+				// If the file exists, load from it
+				// Otherwise, print an error message to the console
+				File teamFile = new File(Team.teamsDataPath+teamName+Team.teamsFileExt);
+				if(file.exists()){
+					teams.add(Team.load(teamFile));
+					cons.printConsoleLine("\t" + teamName + " loaded successfully");
+				}else
+					cons.printConsoleLine("\tERROR: File \"" + teamName + "\" not found");
+				totalFiles++;
+			}
+		}else
+			// If the file is empty, print a message to the console
+			cons.printConsoleLine("No teams found in " + eventFileName);
+		
+		// Print a message to the console to inform the user of what went on
+		cons.printConsoleLine(" Loaded " + teams.size() + "/" + totalFiles + " succesfully.");
+		
+		// Remember to close the input stream!
+		in.close();
+	}
+	
+	public static void save(){
+		
 	}
 	
 	public static void main(String args[]){
 		TeamsList list = new TeamsList();
 		list.cons.setVisible(true);
 		try {
-			list.loadFromFile("LIST1");
+			list.loadFromFile("roster.txt");
 		} catch (FileNotFoundException e) {
 			list.cons.printConsoleLine("Whoops");
 		}
 		
-		/*
+		
 		JFrame frame = new JFrame();
 		frame.setSize(400, 400);
 		
@@ -258,7 +269,7 @@ public class TeamsList {
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
-		*/
+		
 		
 		list.cons.printConsoleLine("" + list.getTeamsListString());
 	}

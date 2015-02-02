@@ -1,11 +1,14 @@
 package teams;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Scanner;
-
 import tournaments.Award;
 import userinterface.ConsoleWindow;
 
@@ -18,35 +21,29 @@ import userinterface.ConsoleWindow;
  * <blockquote><ul>
  * <li>Number: The team's <b>identification number</b>.
  * <li>Name: The team's <b>name</b>.
- * <li>QP: The team's <b>qualification points</b>. The qualification points are added
- * to the team based on the outcome of their match. If the team wins their match,
- * they receive 2 qualification points. If they tie, they receive 1 point. If they
- * lose their match, they receive 0 points. The teams are ranked by this number
- * first. Teams that win more matches will be higher in the listing.
- * <li>RP: The team's <b>round points</b>. After the match is over, the final score of
- * the losing alliance is added to the round point total of all teams in the match. This
- * is kept as an indicator of how competitive the matches have been. A team with a high 
- * QP score may have won a lot of matches, but if their RP score is low, then the competition
- * has not been very tough. A team with a high RP score has been in a lot of competitive matches, 
- * where more points were scored all-around, and may be a better choice. 
+ * <li>Description: A short description of the team, where they're from, etc.
  * </ul></blockquote>
  * 
- * <p>Also contains the capability to store and load teams' data from files. The files
- * are written in properties style, and are loaded from a fixed location.
+ * <p>Also contains the capability to store and load teams' data as a serialized object.
  * 
  * <p>I'm planning to add more data points, such as number of balls scored, average 
  * height of the tubes, autonomous routines, etc.
  * 
  * @author Jonathan Thomas
  */
-public class Team {
+public class Team implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1036964836902877837L;
+	
 	// Important team data. Name and number
 	private int teamNumber = 0;
 	private String teamName = "NO NAME";
 	
 	// Qualifying points and round points for this competition. This information is not stored in the team's data file
-	private int qp = 0;
-	private int rp = 0;
+	private transient int qp = 0;
+	private transient int rp = 0;
 	
 	// Total points earned and total matches played. Used to calculate the average points a team earns.
 	private int totalPoints = 0;
@@ -59,9 +56,10 @@ public class Team {
 	
 	// File path and extension for saving team data
 	public static String teamsDataPath = "data/teams/";
-	public static String teamsFileExt = "";
+	public static String teamsFileExt = ".dat";
 	
-	public ConsoleWindow cons = new ConsoleWindow();
+	// Console window used for outputting text
+	public transient ConsoleWindow cons = new ConsoleWindow();
 	
 	/**
 	 * 
@@ -99,14 +97,8 @@ public class Team {
 	 * @param file The File object to load the team's information from.
 	 */
 	public Team(File file){
-		try {
-			// Try to load the team from a file
-			loadFromFile(file);
-		} catch (FileNotFoundException e) {
-			// If there was a problem with the loading, print out a message to the user
-			cons.printConsoleLine("There was a problem loading a team's data file."
-					+ "\n\tThe file may be corrupted or may not exist\n\t File: " + teamsDataPath + file.getName() + teamsFileExt);
-		}
+		// Try to load the team from a file
+		load(file);
 	}
 	
 	/**
@@ -259,20 +251,20 @@ public class Team {
 	 * will not be saved. Currently, the method only saves the team name and number. I'm planning to add
 	 * the other information into the file, once I work out a way to separate data by competition.
 	 */
-	public void saveTeamInfo(){
+	public static void save(Team team){
 		try{
-			// Create a PrintWriter to write the information to the file
-			PrintWriter writer = new PrintWriter(teamsDataPath + getSaveFileName() + teamsFileExt);
+			// Create an object output stream to write to the file
+			ObjectOutputStream out = new ObjectOutputStream(
+					new FileOutputStream(teamsDataPath + team.getSaveFileName() + teamsFileExt));
 			
-			// Print the information to the file, and close it
-			writer.println("teamName=" + teamName);
-			writer.println("teamNumber=" + teamNumber);
-			writer.close();
-			
-			// Print a message to the user
-			System.out.println("Saved team " + toString());
+			// Write the object to the file
+			out.writeObject(team);
+			out.close();
 		}catch(FileNotFoundException ex){
-			cons.printConsoleLine("There was an error saving team data");
+			team.cons.printConsoleLine("There was an error saving team data");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			team.cons.printConsoleLine("There was an error saving team data");
 		}
 	}
 	
@@ -291,24 +283,37 @@ public class Team {
 	 * @param file The File object that stores the data you want to load.
 	 * @throws FileNotFoundException Thrown if the file does not exist.
 	 */
-	public void loadFromFile(File file) throws FileNotFoundException{
-		//File file = new File(teamsDataPath + teamName + teamsFileExt);
+	public static Team load(File file){
+		Team team = null;
 		
-		if(!file.exists())
-			throw new FileNotFoundException();
+		try {
+			// Create an object input stream to read in the file
+			ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
+			
+			// Try to load the object from the file
+			team = (Team) in.readObject();
+			
+			// Remember to close the input stream!
+			in.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		
-		@SuppressWarnings("resource")
-		Scanner in = new Scanner(file);
+		// If for some reason the team wasn't loaded, create an empty team
+		if(team==null){
+			team = new Team();
+			team.cons.printConsoleLine("There was a problem loading team data");
+		}
 		
-		setTeamName(in.nextLine().split("=")[1]);
-		setTeamNumber(Integer.parseInt(in.nextLine().split("=")[1]));
+		// Return the team
+		return team;
 	}
 	
-	public static void main(String args[]){
-		Team team = new Team(234, "The Feggits");	
-		team.addAwards(Award.COMPASS_AWARD);
-		System.out.println(team.getAwardsList()[0]);
-	}
+	
 	
 	/**
 	 * Add 1 match to the total matches played, and add the specified number of points to the team's total.
@@ -348,6 +353,14 @@ public class Team {
 		return description;
 	}
 	
-	
+	public static void main(String args[]){
+		Team team1 = new Team(5029, "Powerstackers");
+		Team team2 = new Team(4251, "Cougars");
+		Team team3 = new Team(5501, "USS Enterprise");
+		
+		Team.save(team1);
+		Team.save(team2);
+		Team.save(team3);
+	}
 	
 }
