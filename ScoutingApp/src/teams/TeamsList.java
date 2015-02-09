@@ -194,13 +194,13 @@ public class TeamsList {
 	}
 	
 	/**
-	 * Loads a list of teams from a data file.
+	 * Loads a list of teams from a text file.
 	 * 
 	 * <p>The files that this method reads are just lists of filenames for team saves. The inside
 	 * of one file might look like this:
 	 * <blockquote>4251_Cougars<br>
 	 * 5029_Powerstackers<br>
-	 * 5501_DRSS Enterprise<br></blockquote>
+	 * 5501_USS Enterprise<br></blockquote>
 	 * 
 	 * The strings you see are the file names for teams that are stored in the program's library.
 	 * This method will look for those teams, and load them into Team objects, which it will use 
@@ -246,10 +246,6 @@ public class TeamsList {
 		
 		// Remember to close the input stream!
 		in.close();
-	}
-	
-	public static void save(){
-		
 	}
 	
 	public static void main(String args[]){
