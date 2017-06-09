@@ -36,65 +36,44 @@
 //	MAIN TASK
 //
 ///////////////////////////////////////////////////////
-task main(){
-	// Get the robot ready to go.
-	// Start the menu to let the user choose what to do,
-	// Turn on the sensor multiplexer,
-	// Play a sound to let the user know that the robot has started up,
-	// Initialize all the motors and servos
+task main()
+{
+
 	StartTask(runMenuOffensive);
 	StartTask(getSmux);
 	PlaySound(soundUpwardTones);
 	wait10Msec(200);
 	initializeRobot();
 
-	// Wait for the match to begin
 	waitForStart();
 
-	// Start the run.
-	// Turn off the menu,
-	// Print the options the user chose in the menu to the debug stream,
-	// Start showing information on the NXT screen
 	StopTask(runMenuOffensive);
 	printMenuChoices();
 	StartTask(showDebugInfo);
 
-	// Set teh starting encoder position to the current encoder value
 	startEncoderPos = nMotorEncoder[mDriveRight];
 
-	// Delay.
-	// If the delay time is above 0, wait the desired number of seconds, and continue
-	if(delay > 0){
+	if(delay > 0) {
 		writeDebugStreamLine("Wait detected");
 		wait10Msec(delay * 100);
 		writeDebugStreamLine("Wait over");
 	}
 
-	// Raise brick sucker plate.
 	// Raise the brick sucker plate a few inches above the ground,
 	// to keep it from hitting the ramp
 	long targetArmPos = nMotorEncoder[mBsAngle] + 300;
-	while(nMotorEncoder[mBsAngle] < targetArmPos)
+	while(nMotorEncoder[mBsAngle] < targetArmPos) {
 		motor[mBsAngle] = 100;
+	}
 	motor[mBsAngle] = 0;
 
-	// Infra-red.
-	// If the user has chosen to find the infra-red, continue.
-	if(doIr){
-		// Figure out which basket the Infra-red beacon is under, and place the block there
+	if(doIr) {
 		findIrIncremental();
-
-		// If the user has chosen to go around the far end of the ramp,
-		// Figure out how far it is to the end of the ramp, and go that distance
-		if(goAround){
+		if(goAround) {
 			writeDebugStreamLine("Going to far end of ramp");
 			long farEncoderPos = startEncoderPos + inchesToTicks(68);
 			goTicks(farEncoderPos - nMotorEncoder[mDriveRight], 100);
-		}
-
-		// If the user has chosen to go back to the near end of the ramp,
-		// Figure out how far back we have to go, and go that distance
-		else{
+		} else {
 			// If the robot started on the near side of the ramp, go back a little further
 			long nearEncoderPos;
 			if(startNear)
@@ -106,62 +85,52 @@ task main(){
 			goTicks(-1 * (nMotorEncoder[mDriveRight] - nearEncoderPos), 100);
 		}
 
-		// If the robot started on the near side (ramp to the robot's right),
-		// Turn clockwise, then go forward, find the line,
-		// Then turn counterclockwise, and go backwards
 		if(startNear){
 			turnDegrees(-90, turnSpeed);
 
-			// Find the white gaffer's tape, and use it to align the robot
 			findWhiteLine();
 
-			// Adjust the position a little, so we don't hit the ramp
-			if(!rampOtherSide)
+			if(!rampOtherSide) {
 				goTicks(inchesToTicks(6), 50);
-			else
+			} else {
 				goTicks(inchesToTicks(-6), 50);
+			}
 
-			// Turn clockwise if we're on the far end, counterclockwise if we're on the near end
-			if(goAround)
+			if(goAround) {
 				turnDegrees(50, turnSpeed);
-			else
+			} else {
 				turnDegrees(-80, turnSpeed);
-		}
-
-		// If the robot started on the far side (ramp to the robot's left),
-		// Turn counterclockwise, then go forward, find the line,
-		// Then turn clockwise, and go backwards
-		else{
+			}
+		} else {
 			// Turn a little bit more or less if we're on the far or near side,
-			// To avoid hitting the ramp
-			if(goAround)
+			// to avoid hitting the ramp
+			if(goAround) {
 				turnDegrees(70, turnSpeed);
-			else
+			} else {
 				turnDegrees(80, turnSpeed);
+			}
 
-			// Find the white gaffer's tape, and use  it to align the robot
 			findWhiteLine();
 
-			// Adjust the position so we don't hit the ramp
-			if(!rampOtherSide)
+			if(!rampOtherSide) {
 				goTicks(inchesToTicks(6), 50);
-			else
+			} else {
 				goTicks(inchesToTicks(-6), 50);
+			}
 
-			// Turn counterclockwise if we're on the far end, clockwise if we're on the near end
-			if(goAround)
+			if(goAround) {
 				turnDegrees(-60, turnSpeed);
-			else
+			} else {
 				turnDegrees(60, turnSpeed);
+			}
 		}
 
 		// Go up the ramp, and turn 90 degrees so we can't be pushed
 		goTicks(inchesToTicks(-40), 100);
 		turnDegrees(80, 50);
-	}
-
-	// If the user has chosen not to place the IR block
-	// (This is where a defensive game option would go)
-	else
+	} else {
+		// If the user has chosen not to place the IR block
+		// (This is where a defensive game option would go)
 		writeDebugStreamLine("Did not do IR. You really should have.");
+	}
 }

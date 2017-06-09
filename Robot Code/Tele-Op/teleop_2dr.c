@@ -30,74 +30,48 @@
 // Include the file to run the motors and servos, and get joystick input
 #include "JoystickDriver.c"
 
-// Define constants:
 // STICK_TO_MOTOR: Convert the joystick's -128 - +127 value into a -99 - +100 value
-// MODE_STRAIGHT/MODE_NORMAL: Replacements for true and false, used for drive modes
 #define STICK_TO_MOTOR(x)	((float)x * 0.78125)
 #define MODE_STRAIGHT true
 #define MODE_NORMAL false
 
-// Define global variables:
+short stickDriveLeft;
+short stickDriveRight;
+short stickAngle;
+short stickBlockStop;
 
-// Joysticks:
-// stickDriveLeft: The left drive joystick value
-// stickDriveRight: The right drive joystick value
-// stickAngle: The joystick for the sucker plate
-// stickBlockStop: The joystick for the brick gate
-short 	stickDriveLeft;
-short 	stickDriveRight;
-short		stickAngle;
-short		stickBlockStop;
+bool btnStraightDr;
+bool btnConveyor;
+bool btnReverse;
+bool btnFlagClock;
+bool btnFlagCounter;
+bool btnConveyorTight;
 
-// Buttons:
-// btnStriaghtDr: The button to activate StraightDrive mode
-// btnConveyor: The button to run the conveyor upward
-// btnRevers: The button to run the conveyor downward
-// btnFlagClock: The button to run the flag raiser clockwise
-// btnFlagCounter: The button to run the flag raiser counterclockwise
-// btnConveyorTight: The button to activate the conveyor tension servo
-bool 		btnStraightDr;
-bool		btnConveyor;
-bool		btnReverse;
-bool		btnFlagClock;
-bool		btnFlagCounter;
-bool		btnConveyorTight;
+bool driveMode;
+//bool brickBlocked = true;
+//bool blockerMoving = false;
 
-// Boolean flags:
-// driveMode: The drive mode (straight or normal)
-// brickBlocked: Whether the brick gate is up or not
-// blockerMoving: Whether the brick gate is moving or still
-bool		driveMode;
-//bool		brickBlocked = true;
-//bool		blockerMoving = false;
-
-// Constant variables:
-// stickThreshold: Joystick values below this number will not be detected
-// blockClosedPos: Brick gate closed position
-// blockOpenPos: Brick gate open position
-// blockOpenThresh: If the brick gate is past this position, it will not close further
-// blockClosedThresh: If the brick gate is past this position, it will not open further
-// blockSpeed: Motor speed for the brick blocker
-const short		stickThreshold = 10;
-const int			blockClosedPos = 90;
-const int			blockOpenPos = -5;
-const int 		blockOpenThresh = -360;
-const int 		blockClosedThresh = 360;
-const int			blockSpeed = 50;
+const short stickThreshold = 10;
+const int blockClosedPos = 90;
+const int blockOpenPos = -5;
+const int blockOpenThresh = -360;
+const int blockClosedThresh = 360;
+const int blockSpeed = 50;
 
 /////////////////////////////////////////////////////
 //
 //	Set all motors to the input parameter value
 //
 /////////////////////////////////////////////////////
-void allMotorsTo(int i){
-		motor[mDriveLeft] 	= i;
-		motor[mDriveRight] 	= i;
-		motor[mBsAngle] 		= i;
-		motor[mBsConveyor] 	= i;
-		motor[mBlockStop] = i;
-		motor[mFlagRaise1] = i;
-		motor[mFlagRaise2] = i;
+void allMotorsTo(int i)
+{
+	motor[mDriveLeft] = i;
+	motor[mDriveRight] = i;
+	motor[mBsAngle] = i;
+	motor[mBsConveyor] = i;
+	motor[mBlockStop] = i;
+	motor[mFlagRaise1] = i;
+	motor[mFlagRaise2] = i;
 }
 
 ///////////////////////////////////////////////////////
@@ -105,9 +79,10 @@ void allMotorsTo(int i){
 //	Set all drive motors to the input parameter value
 //
 ///////////////////////////////////////////////////////
-void driveMotorsTo(int i){
-		motor[mDriveLeft] 	= i;
-		motor[mDriveRight] 	= i;
+void driveMotorsTo(int i)
+{
+	motor[mDriveLeft] 	= i;
+	motor[mDriveRight] 	= i;
 }
 
 ///////////////////////////////////////////////////
@@ -115,7 +90,8 @@ void driveMotorsTo(int i){
 //	Set all encoders to the input parameter value
 //
 ///////////////////////////////////////////////////
-void allEncodersTo(int i){
+void allEncodersTo(int i)
+{
 	nMotorEncoder[mBlockStop] = i;
 	nMotorEncoder[mBsAngle] = i;
 	nMotorEncoder[mBsConveyor] = i;
@@ -139,7 +115,7 @@ void initializeRobot()
 	PlaySound(soundUpwardTones);
 	nxtDisplayCenteredBigTextLine(2, "Tele-Op");
 	nxtDisplayCenteredBigTextLine(4, "Ready");
-  return;
+	return;
 }
 
 //////////////////////////////////////////////////////////////
@@ -147,16 +123,17 @@ void initializeRobot()
 //	Copy the Joystick values into the custom variables
 //
 //////////////////////////////////////////////////////////////
-void getCustomJoystickSettings(){
+void getCustomJoystickSettings()
+{
 	stickDriveLeft 	= joystick.joy1_y1;		// dr1 left joystick
 	stickDriveRight = joystick.joy1_y2;		// dr1 right joystick
-	stickAngle			= joystick.joy2_y1;		// dr2 left joystick
-	stickBlockStop	=	joystick.joy2_y2;		// dr2 right joystick
-	btnStraightDr		= (joy1Btn(3) == 1);	// dr1 red button
-	btnFlagClock		= (joy1Btn(5) == 1);	// dr1 left shoulder
+	stickAngle		= joystick.joy2_y1;		// dr2 left joystick
+	stickBlockStop	=	joystick.joy2_y2;	// dr2 right joystick
+	btnStraightDr	= (joy1Btn(3) == 1);	// dr1 red button
+	btnFlagClock	= (joy1Btn(5) == 1);	// dr1 left shoulder
 	btnFlagCounter	= (joy1Btn(7) == 1);	// dr1 left trigger
-	btnReverse			= (joy2Btn(8) == 1);	// dr2 right trigger
-	btnConveyor			=	(joy2Btn(6) == 1);	// dr2 right shoulder
+	btnReverse		= (joy2Btn(8) == 1);	// dr2 right trigger
+	btnConveyor		=	(joy2Btn(6) == 1);	// dr2 right shoulder
 	btnConveyorTight =(joy2Btn(7) == 1);	// dr2 left trigger
 }
 
@@ -165,12 +142,13 @@ void getCustomJoystickSettings(){
 //	Print custom information to the NXT screen
 //
 /////////////////////////////////////////////////////////////
-void displayButtonValues(){
-  	nxtDisplayTextLine(1, "blockStop enc: %d",	nMotorEncoder[mBlockStop]);// Right drive joystick
-		nxtDisplayTextLine(3, "stickBlSt:%d", stickBlockStop);						// Brick stopper button
-		nxtDisplayTextLine(4, "mtrBlock:%d", motor[mBlockStop]);
-  	nxtDisplayTextLine(5, "bsAngle:%d", nMotorEncoder[mBsAngle]);			// Encoder on NXT motor
-		nxtDisplayTextLine(6, "stickAngle:%d", stickAngle);								// Brick sucker joystick
+void displayButtonValues()
+{
+	nxtDisplayTextLine(1, "blockStop enc: %d",	nMotorEncoder[mBlockStop]);
+	nxtDisplayTextLine(3, "stickBlSt:%d", stickBlockStop);
+	nxtDisplayTextLine(4, "mtrBlock:%d", motor[mBlockStop]);
+  	nxtDisplayTextLine(5, "bsAngle:%d", nMotorEncoder[mBsAngle]);
+	nxtDisplayTextLine(6, "stickAngle:%d", stickAngle);
 }
 
 ///////////////////////////////////////////////
@@ -178,39 +156,31 @@ void displayButtonValues(){
 //	MAIN TASK
 //
 //////////////////////////////////////////////
-task main(){
-	// Do some housekeeping to start:
-	// Turn off the diagnotstic display on the NXT screen, to make way for our own custom info
-	// Clear the debug stream
-	// Clear the NXT screen
-	// Initialize the robot motors and sensors
-	// Clear the timer
-	// Set the time since last good signal before an error is thrown
+task main()
+{
 	bDisplayDiagnostics = false;
-  clearDebugStream();
+	clearDebugStream();
 	eraseDisplay();
-  initializeRobot();
-  ClearTimer(T1);
-  nNoMessageCounterLimit = 500;
+	initializeRobot();
+	ClearTimer(T1);
+	nNoMessageCounterLimit = 500;
 
-  // Wait for the match to begin
-  waitForStart();
-  nxtDisplayCenteredBigTextLine(4, "Running");
-  PlaySound(soundFastUpwardTones);
+
+	waitForStart();
+	nxtDisplayCenteredBigTextLine(4, "Running");
+	PlaySound(soundFastUpwardTones);
 
   // Loop forever
-  while (true){
-  	// Get the regular joystick information
-  	// Get the custom joystick information
-  	getJoystickSettings(joystick);
-  	getCustomJoystickSettings();
+  while (true) {
+		getJoystickSettings(joystick);
+		getCustomJoystickSettings();
 
-  	// If the robot loses connection, play and obnoxious sound
-  	// And print a big, scary "LOST CONNECTION" to the NXT screen
-  	// Until the robot regains connection
-  	if(bDisconnected){
-  		allMotorsTo(0);
-			while(bDisconnected){
+		// If the robot loses connection, play and obnoxious sound
+		// And print a big, scary "LOST CONNECTION" to the NXT screen
+		// Until the robot regains connection
+		if(bDisconnected) {
+			allMotorsTo(0);
+			while(bDisconnected) {
 				nxtDisplayCenteredBigTextLine(2, "LOST");
 				nxtDisplayCenteredBigTextLine(4, "CONNECT");
 				nxtDisplayCenteredBigTextLine(6, "-ION");
@@ -238,102 +208,74 @@ task main(){
 			}else{
 				driveMotorsTo(0);
 			}
-		}
+		} else if(driveMode == MODE_NORMAL) {
 
-		// Normal drive mode:
-		else if(driveMode == MODE_NORMAL){
-
-			// If the left stick is above the threshold, move the motor
-			// At a speed proportional to the value of the joystick
-			if(abs(stickDriveLeft) < stickThreshold){
+			if(abs(stickDriveLeft) < stickThreshold) {
 				motor[mDriveLeft] = 0;
-			}
-			// If the left stick is below the threshold, stop the motor
-			else{
+			} else{
 				motor[mDriveLeft] = STICK_TO_MOTOR(stickDriveLeft);
 			}
 
-			// If the right stick is above the threshold, move the motor
-			// At a speed proportional to the value of the joystick
-			if(abs(stickDriveRight) < stickThreshold){
+			if(abs(stickDriveRight) < stickThreshold) {
 				motor[mDriveRight] = 0;
-			}
-			// If the right stick is below the threshold, stop the motor
-			else{
+			} else {
 				motor[mDriveRight] = STICK_TO_MOTOR(stickDriveRight);
 			}
 		}
 
-		// If the conveyor button is pressed, move the conveyor motors upward
-		if(btnConveyor){
+		if(btnConveyor) {
 			motor[mBsConveyor] = 100;
-		}
-		// If the conveyor REVERSE button is pressed, move the conveyor downward
-		else if(btnReverse){
+		} else if(btnReverse) {
 			motor[mBsConveyor] = -100;
-		}
-		// If neither of those buttons are pressed, stop the motors
-		else{
+		} else{
 			motor[mBsConveyor] = 0;
 		}
 
-		// If the sucker plate stick is below the threshold, do not move the motors
 		if(abs(stickAngle) < stickThreshold){
 			motor[mBsAngle] = 0;
-		}
-
-		// If the sucker plate stick is above the threshold,
-		// And the stop sensor is not activated, move the motors
-		// If the stop sensor is activated, stop the motors
-		// This keeps the sucker plate from going down too far and damaging the gears
-		else{
-			if(stickAngle < 0 && SensorValue[sConvStop] == 1){
+		} else {
+			// Don't move the block sucker down if the touch sensor is active
+			if(stickAngle < 0 && SensorValue[sConvStop] == 1) {
 				motor[mBsAngle] = 0;
 				nMotorEncoder[mBsAngle] = 0;
-			}else
+			} else {
 				motor[mBsAngle] = ((stickAngle > 0)? 100 : -100);
+			}
 		}
 
-		// If the block gate stick is below the threshold, do not move the motors
-		// If it is above the threshold, move it up or down
-		// Do not let it go past certain values
+		// Do not let the block gate go above certain values
 		// This keeps it from turning too far and damaging the motors
-		if(abs(stickBlockStop) < stickThreshold){
+		if(abs(stickBlockStop) < stickThreshold) {
 			motor[mBlockStop] = 0;
-		}else if(nMotorEncoder[mBlockStop] >= blockOpenThresh && stickBlockStop > 0){
-				if(nMotorEncoder[mBlockStop] < blockClosedPos){
+		} else if(nMotorEncoder[mBlockStop] >= blockOpenThresh && stickBlockStop > 0) {
+				if(nMotorEncoder[mBlockStop] < blockClosedPos) {
 					motor[mBlockStop] = blockSpeed;
-				}else{
+				} else {
 					motor[mBlockStop] = 0;
 				}
-		}else if(nMotorEncoder[mBlockStop] <= blockClosedThresh && stickBlockStop < 0){
-			if(nMotorEncoder[mBlockStop] > blockOpenPos){
+		} else if(nMotorEncoder[mBlockStop] <= blockClosedThresh && stickBlockStop < 0) {
+			if(nMotorEncoder[mBlockStop] > blockOpenPos) {
 				motor[mBlockStop] = blockSpeed * -1;
-			}else{
+			} else {
 				motor[mBlockStop] = 0;
 			}
-		}else{
+		} else {
 			motor[mBlockStop] = 0;
 		}
 
-		// If the flag clockwise button is pressed, move the flag raiser clockwise
-		// If the counterclockwise button is pressed, move the flag counterclockwise
-		// If neither button is pressed, stop the motor
 		if(btnFlagClock){
-			if(!btnFlagCounter){
+			if(!btnFlagCounter) {
 				motor[mFlagRaise1] = 100;
 				motor[mFlagRaise2] = 100;
 			}
-		}else if(btnFlagCounter){
+		} else if(btnFlagCounter) {
 			motor[mFlagRaise1] = -100;
 			motor[mFlagRaise2] = -100;
-		}else{
+		} else {
 			motor[mFlagRaise1] = 0;
 			motor[mFlagRaise2] = 0;
 		}
 
-		// If the conveyor tension button is pressed, extend the servo
-		// If the button is not pressed, retract the servo
 		if(btnConveyorTight){
 			servo[rConveyorTight] = 170;
 		}else{
@@ -341,11 +283,11 @@ task main(){
 		}
 
 		// If the sucker plate is above a certain height,
-		// Move the flipper servos out of the way
-		if(nMotorEncoder[mBsAngle] > 3000){
+		// move the flipper servos out of the way
+		if(nMotorEncoder[mBsAngle] > 3000) {
 			servo[rBlockDropLeft] = 118;
 			servo[rBlockDropRight] = 128;
-		}else{
+		} else {
 			servo[rBlockDropLeft] = 32;
 			servo[rBlockDropRight] = 200;
 		}

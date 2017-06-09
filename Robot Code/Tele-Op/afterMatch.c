@@ -25,7 +25,6 @@
 ////////////////////////////////////////////////////////
 task main()
 {
-	// Clear the timer
 	ClearTimer(T1);
 
 	// Print the interface
@@ -33,55 +32,48 @@ task main()
 	nxtDisplayTextLine(2, "   DOWN     UP");
 	nxtDisplayBigTextLine(3, "  <   >");
 
-	// Declare variables to store the active motors, and the active motor names
 	int motorUsing = 0;
 	string motorActive = "";
 
-	// Loop forever
-	while(true){
-		// Set the name of the active motor to the appropriate value
-		if(motorUsing == 0)
+	while(true) {
+		if(motorUsing == 0) {
 			motorActive = "Sucker";
-		else if(motorUsing == 1)
+		} else if(motorUsing == 1) {
 			motorActive = "Arm";
-		else
+		} else {
 			motorActive = "Flag";
+		}
 
-		// Update the screen with the active motor name, and the values of all the motors
 		nxtDisplayTextLine(1, "%s", motorActive);
 		nxtDisplayTextLine(5, "Sucker:%d", motor[mBsConveyor]);
 		nxtDisplayTextLine(6, "Lift:%d", motor[mBsAngle]);
 		nxtDisplayTextLine(7, "Flag:1(%d)2(%d)", motor[mFlagRaise1], motor[mFlagRaise2]);
 
 		// If the left arrow button is pressed, move the active motor backwards
-		if(nNxtButtonPressed == 2){
-			if(motorUsing == 0)
+		if(nNxtButtonPressed == 2) {
+			if(motorUsing == 0) {
 				motor[mBsConveyor] = -100;
-			else if(motorUsing == 1)
-				if(SensorValue[sConvStop] == 1)
+			} else if(motorUsing == 1) {
+				if(SensorValue[sConvStop] == 1) {
 					motor[mBsAngle] = 0;
-				else
+				} else {
 					motor[mBsAngle] = -100;
-			else{
+				}
+			} else {
 				motor[mFlagRaise1] = -100;
 				motor[mFlagRaise2] = -100;
 			}
-		}
-
-		// If the right arrow button is pressed, move the active motor forwards
-		else if(nNxtButtonPressed == 1){
-			if(motorUsing == 0)
+		} else if(nNxtButtonPressed == 1) {
+			// If the right arrow button is pressed, move the active motor forwards
+			if(motorUsing == 0) {
 				motor[mBsConveyor] = 100;
-			else if(motorUsing == 1)
+			} else if(motorUsing == 1) {
 				motor[mBsAngle] = 100;
-			else{
+			} else {
 				motor[mFlagRaise1] = 100;
 				motor[mFlagRaise2] = 100;
 			}
-		}
-
-		// If no buttons are pressed, stop all the motors
-		else{
+		} else {
 			motor[mBsAngle] = 0;
 			motor[mBsConveyor] = 0;
 			motor[mFlagRaise1] = 0;
@@ -90,16 +82,15 @@ task main()
 
 		// If the orange button is pressed, set the active motor to the next motor in the list
 		if(nNxtButtonPressed == 3){
-			if(motorUsing == 0)
+			if(motorUsing == 0) {
 				motorUsing = 1;
-			else if(motorUsing == 1)
+			} else if(motorUsing == 1) {
 				motorUsing = 2;
-			else
+			} else {
 				motorUsing = 0;
+			}
 			wait10Msec(50);
 			PlaySound(soundBlip);
 		}
 	}
-
-
 }

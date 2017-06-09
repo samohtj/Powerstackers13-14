@@ -34,6 +34,4 @@ task main()
 	goTicks(inchesToTicks(36), 75);
 	wait10Msec(100);
 	goTicks(-1 * inchesToTicks(36), 75);
-
-
 }
